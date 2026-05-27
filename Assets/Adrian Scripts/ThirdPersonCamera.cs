@@ -14,6 +14,12 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private float maxVerticalAngle = 65f;
     [SerializeField] private float cameraSmoothSpeed = 15f;
 
+    [Header("Collision")]
+    [SerializeField] private LayerMask collisionLayer;
+    [SerializeField] private float collisionRadius = 0.25f;
+    [SerializeField] private float collisionOffset = 0.15f;
+    [SerializeField] private float minimumDistance = 0.75f;
+
     private float yaw;
     private float pitch;
 
@@ -33,7 +39,16 @@ public class ThirdPersonCamera : MonoBehaviour
 
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
         Vector3 targetPosition = target.position + Vector3.up * height;
-        Vector3 desiredPosition = targetPosition - rotation * Vector3.forward * distance;
+        Vector3 desiredDirection = -(rotation * Vector3.forward);
+        Vector3 desiredPosition = targetPosition + desiredDirection * distance;
+
+        float finalDistance = distance;
+
+        if (Physics.SphereCast(targetPosition, collisionRadius, desiredDirection, out RaycastHit hit, distance, collisionLayer, QueryTriggerInteraction.Ignore))
+        {
+            finalDistance = Mathf.Clamp(hit.distance - collisionOffset, minimumDistance, distance);
+            desiredPosition = targetPosition + desiredDirection * finalDistance;
+        }
 
         transform.position = Vector3.Lerp(transform.position, desiredPosition, cameraSmoothSpeed * Time.deltaTime);
         transform.LookAt(targetPosition);
