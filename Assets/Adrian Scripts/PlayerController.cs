@@ -22,6 +22,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool sprintOnlyWhileGrounded = true;
     [SerializeField] private bool allowDoubleJump = true;
 
+    [Header("Slide")]
+    [SerializeField] private LayerMask slideLayer;
+    [SerializeField] private float maxStableSlopeAngle = 25f;
+    [SerializeField] private float slideAcceleration = 18f;
+    [SerializeField] private float maxSlideSpeed = 12f;
+    [SerializeField] private float slideSteeringStrength = 4f;
+    [SerializeField] private float slideRaycastDistance = 1.4f;
+    [SerializeField] private float slideStickToGroundForce = 5f;
+
     [Header("Crawl")]
     [SerializeField] private float crawlSpeed = 3f;
     [SerializeField] private float crawlHeight = 0.9f;
@@ -68,6 +77,8 @@ public class PlayerController : MonoBehaviour
     private Vector2 lookInput;
     private Vector3 velocity;
     private Vector3 currentMoveDirection;
+    private Vector3 currentGroundNormal = Vector3.up;
+    private Vector3 slideVelocity;
     private Coroutine sharedCooldownCoroutine;
     private float standingHeight;
     private Vector3 standingCenter;
@@ -85,6 +96,7 @@ public class PlayerController : MonoBehaviour
     private bool isUppercutHovering;
     private bool isUppercutMovementLocked;
     private bool isCrawling;
+    private bool isSliding;
     private bool canDoubleJump;
     private bool canUseAirDashOrSpin = true;
     private bool canUseSharedDashSpinAction = true;
@@ -126,10 +138,16 @@ public class PlayerController : MonoBehaviour
         CheckGrounded();
         ResetAirActionsOnLanding();
         HandleUppercutBuffer();
+        HandleSlideState();
         HandleCrawlState();
         ApplyCrawlSize();
 
-        if (!isDashing && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked)
+        if (isSliding && !isDashing && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked)
+        {
+            HandleSlideMovement();
+            HandleJump();
+        }
+        else if (!isDashing && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked)
         {
             HandleMovement();
             HandleJump();
@@ -202,7 +220,17 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
+        LayerMask groundingLayers = groundLayer | slideLayer;
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundingLayers, QueryTriggerInteraction.Ignore);
+
+        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, slideRaycastDistance, groundingLayers, QueryTriggerInteraction.Ignore))
+        {
+            currentGroundNormal = hit.normal;
+        }
+        else
+        {
+            currentGroundNormal = Vector3.up;
+        }
 
         if (isGrounded)
         {
@@ -244,11 +272,36 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void HandleSlideState()
+    {
+        bool shouldSlide = false;
+        LayerMask groundingLayers = groundLayer | slideLayer;
+
+        if (isGrounded && Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, slideRaycastDistance, groundingLayers, QueryTriggerInteraction.Ignore))
+        {
+            bool isSlideSurface = ((1 << hit.collider.gameObject.layer) & slideLayer.value) != 0;
+            float groundAngle = Vector3.Angle(hit.normal, Vector3.up);
+            shouldSlide = isSlideSurface && groundAngle > maxStableSlopeAngle;
+            currentGroundNormal = hit.normal;
+        }
+
+        if (shouldSlide)
+        {
+            isSliding = true;
+            isCrawling = false;
+            crawlTimer = 0f;
+            return;
+        }
+
+        isSliding = false;
+        slideVelocity = Vector3.MoveTowards(slideVelocity, Vector3.zero, slideAcceleration * Time.deltaTime);
+    }
+
     private void HandleCrawlState()
     {
         bool crawlHeld = Keyboard.current != null && Keyboard.current.leftCtrlKey.isPressed;
         bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
-        bool wantsToCrawl = crawlHeld && recentlyGrounded && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked;
+        bool wantsToCrawl = crawlHeld && recentlyGrounded && !isSliding && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked;
 
         if (wantsToCrawl)
         {
@@ -280,12 +333,18 @@ public class PlayerController : MonoBehaviour
 
     private bool CanStandUp()
     {
+        LayerMask obstructionLayers = groundLayer | slideLayer;
         Vector3 checkPosition = transform.position + standingCenter + Vector3.up * ((standingHeight * 0.5f) - standCheckRadius);
-        return !Physics.CheckSphere(checkPosition, standCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
+        return !Physics.CheckSphere(checkPosition, standCheckRadius, obstructionLayers, QueryTriggerInteraction.Ignore);
     }
 
     private bool CanStartDashOrSpin()
     {
+        if (isSliding)
+        {
+            return false;
+        }
+
         if (airActionsLockedUntilGrounded)
         {
             return false;
@@ -311,6 +370,11 @@ public class PlayerController : MonoBehaviour
 
     private bool CanStartGroundSlam()
     {
+        if (isSliding)
+        {
+            return false;
+        }
+
         if (airActionsLockedUntilGrounded)
         {
             return false;
@@ -429,11 +493,70 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void HandleSlideMovement()
+    {
+        Vector3 cameraForward = cameraTransform.forward;
+        Vector3 cameraRight = cameraTransform.right;
+
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
+        Vector3 steeringDirection = cameraForward * moveInput.y + cameraRight * moveInput.x;
+
+        if (steeringDirection.sqrMagnitude > 1f)
+        {
+            steeringDirection.Normalize();
+        }
+
+        steeringDirection = Vector3.ProjectOnPlane(steeringDirection, currentGroundNormal);
+
+        if (steeringDirection.sqrMagnitude > 0.01f)
+        {
+            steeringDirection.Normalize();
+        }
+
+        Vector3 downhillDirection = Vector3.ProjectOnPlane(Vector3.down, currentGroundNormal);
+
+        if (downhillDirection.sqrMagnitude > 0.01f)
+        {
+            downhillDirection.Normalize();
+        }
+
+        Vector3 targetSlideVelocity = downhillDirection * maxSlideSpeed + steeringDirection * slideSteeringStrength;
+        targetSlideVelocity = Vector3.ClampMagnitude(targetSlideVelocity, maxSlideSpeed);
+        slideVelocity = Vector3.MoveTowards(slideVelocity, targetSlideVelocity, slideAcceleration * Time.deltaTime);
+        currentMoveDirection = slideVelocity.sqrMagnitude > 0.01f ? slideVelocity.normalized : downhillDirection;
+
+        characterController.Move((slideVelocity + Vector3.down * slideStickToGroundForce) * Time.deltaTime);
+
+        if (currentMoveDirection.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(new Vector3(currentMoveDirection.x, 0f, currentMoveDirection.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        }
+    }
+
     private void HandleJump()
     {
         bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
 
-        if (jumpPressed && recentlyGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
+        if (jumpPressed && isSliding && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            isSliding = false;
+            slideVelocity = Vector3.zero;
+            canDoubleJump = true;
+            canUseAirDashOrSpin = true;
+
+            if (resetSpecialActionCooldownOnJump)
+            {
+                ResetSharedSpecialActionCooldown();
+            }
+        }
+        else if (jumpPressed && recentlyGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
         {
             velocity.y = Mathf.Sqrt(crawlHighJumpHeight * -2f * gravity);
             LockAirActionsUntilGrounded();
