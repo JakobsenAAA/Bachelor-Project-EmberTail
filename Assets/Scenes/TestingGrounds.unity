@@ -2187,6 +2187,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1149413967}
   - component: {fileID: 1149413966}
+  - component: {fileID: 1149413969}
   - component: {fileID: 1149413965}
   - component: {fileID: 1149413968}
   m_Layer: 0
@@ -2209,6 +2210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   cameraTransform: {fileID: 330585546}
+  slopeSlide: {fileID: 1149413969}
   dashAttackBox: {fileID: 1062701799}
   spinAttackBox: {fileID: 1624330092}
   groundSlamAttackBox: {fileID: 362651552}
@@ -2221,15 +2223,6 @@ MonoBehaviour:
   gravity: -25
   sprintOnlyWhileGrounded: 1
   allowDoubleJump: 1
-  slideLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  maxStableSlopeAngle: 25
-  slideAcceleration: 18
-  maxSlideSpeed: 12
-  slideSteeringStrength: 6
-  slideRaycastDistance: 1.4
-  slideStickToGroundForce: 5
   crawlSpeed: 2.5
   crawlHeight: 1
   crawlHoldTimeForHighJump: 1
@@ -2335,6 +2328,38 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &1149413969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1149413964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d377f26d07b15840b6247268181061d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSlopeSlide
+  slideLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  normalGroundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  slopeAngleThreshold: 10
+  groundProbeRadius: 0.3
+  groundProbeDistance: 1.3
+  probeStartHeight: 0.5
+  contactMemoryTime: 0.12
+  slideAcceleration: 18
+  maxSlideSpeed: 12
+  slideStickForce: 6
+  steeringStrength: 2.5
+  rotationSpeed: 12
+  slideJumpHeight: 2.4
+  slideJumpForwardSpeed: 10
+  slideJumpGravity: -25
+  slideJumpMinAirTime: 0.12
 --- !u!1 &1165601529
 GameObject:
   m_ObjectHideFlags: 0
