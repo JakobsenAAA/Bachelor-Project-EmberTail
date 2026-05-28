@@ -9,14 +9,26 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private GameObject dashAttackBox;
     [SerializeField] private GameObject spinAttackBox;
+    [SerializeField] private GameObject groundSlamAttackBox;
+    [SerializeField] private GameObject uppercutAttackBox;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
     [SerializeField] private float sprintSpeed = 9f;
     [SerializeField] private float rotationSpeed = 12f;
     [SerializeField] private float jumpHeight = 1.8f;
+    [SerializeField] private float doubleJumpHeight = 1.6f;
     [SerializeField] private float gravity = -25f;
     [SerializeField] private bool sprintOnlyWhileGrounded = true;
+    [SerializeField] private bool allowDoubleJump = true;
+
+    [Header("Crawl")]
+    [SerializeField] private float crawlSpeed = 3f;
+    [SerializeField] private float crawlHeight = 0.9f;
+    [SerializeField] private float crawlHoldTimeForHighJump = 1f;
+    [SerializeField] private float crawlHighJumpHeight = 3.5f;
+    [SerializeField] private bool preventStandingWhenBlocked = true;
+    [SerializeField] private float standCheckRadius = 0.25f;
 
     [Header("Dash")]
     [SerializeField] private float dashSpeed = 16f;
@@ -27,6 +39,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float spinDuration = 0.35f;
     [SerializeField] private float airSpinGravityMultiplier = 0.25f;
     [SerializeField] private float airSpinMaxFallSpeed = 3f;
+
+    [Header("Ground Slam")]
+    [SerializeField] private float groundSlamHoverTime = 0.5f;
+    [SerializeField] private float groundSlamGravity = -80f;
+    [SerializeField] private float groundSlamImpactTime = 0.15f;
+    [SerializeField] private bool allowGroundSlamAfterDashOrSpin = true;
+
+    [Header("Uppercut")]
+    [SerializeField] private float uppercutInputBufferTime = 0.18f;
+    [SerializeField] private float uppercutHoverTime = 0.2f;
+    [SerializeField] private float uppercutJumpHeight = 3.5f;
+    [SerializeField] private float uppercutAttackTime = 0.25f;
 
     [Header("Special Action Limit")]
     [SerializeField] private bool limitAirSpecialActions = true;
@@ -44,19 +68,32 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity;
     private Vector3 currentMoveDirection;
     private Coroutine sharedCooldownCoroutine;
+    private float standingHeight;
+    private Vector3 standingCenter;
+    private float crawlTimer;
+    private float uppercutBufferTimer;
     private bool jumpPressed;
+    private bool uppercutRequested;
     private bool isGrounded;
     private bool wasGrounded;
     private bool isDashing;
     private bool isSpinning;
-    private bool canUseAirSpecialAction = true;
-    private bool canUseSharedSpecialAction = true;
+    private bool isGroundSlamming;
+    private bool isUppercutHovering;
+    private bool isCrawling;
+    private bool canDoubleJump;
+    private bool canUseAirDashOrSpin = true;
+    private bool canUseSharedDashSpinAction = true;
+    private bool hasUsedGroundSlam;
+    private bool airActionsLockedUntilGrounded;
 
     public Vector2 LookInput => lookInput;
 
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
+        standingHeight = characterController.height;
+        standingCenter = characterController.center;
 
         if (dashAttackBox != null)
         {
@@ -67,20 +104,36 @@ public class PlayerController : MonoBehaviour
         {
             spinAttackBox.SetActive(false);
         }
+
+        if (groundSlamAttackBox != null)
+        {
+            groundSlamAttackBox.SetActive(false);
+        }
+
+        if (uppercutAttackBox != null)
+        {
+            uppercutAttackBox.SetActive(false);
+        }
     }
 
     private void Update()
     {
         CheckGrounded();
-        ResetSpecialActionOnLanding();
+        ResetAirActionsOnLanding();
+        HandleUppercutBuffer();
+        HandleCrawlState();
+        ApplyCrawlSize();
 
-        if (!isDashing)
+        if (!isDashing && !isGroundSlamming && !isUppercutHovering)
         {
             HandleMovement();
             HandleJump();
         }
 
-        HandleGravity();
+        if (!isGroundSlamming && !isUppercutHovering)
+        {
+            HandleGravity();
+        }
 
         wasGrounded = isGrounded;
     }
@@ -99,7 +152,14 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            jumpPressed = true;
+            if (isDashing || uppercutBufferTimer > 0f)
+            {
+                uppercutRequested = true;
+            }
+            else
+            {
+                jumpPressed = true;
+            }
         }
     }
 
@@ -109,7 +169,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnDash(InputValue value)
     {
-        if (value.isPressed && CanStartSpecialAction())
+        if (value.isPressed && CanStartDashOrSpin())
         {
             StartCoroutine(Dash());
         }
@@ -117,9 +177,17 @@ public class PlayerController : MonoBehaviour
 
     public void OnSpin(InputValue value)
     {
-        if (value.isPressed && CanStartSpecialAction())
+        if (value.isPressed && CanStartDashOrSpin())
         {
             StartCoroutine(Spin());
+        }
+    }
+
+    public void OnGroundSlam(InputValue value)
+    {
+        if (value.isPressed && CanStartGroundSlam())
+        {
+            StartCoroutine(GroundSlam());
         }
     }
 
@@ -127,38 +195,96 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
 
-        if (isGrounded && velocity.y < 0f)
+        if (isGrounded && velocity.y < 0f && !isGroundSlamming)
         {
             velocity.y = -2f;
         }
     }
 
-    private void ResetSpecialActionOnLanding()
+    private void ResetAirActionsOnLanding()
     {
         if (!wasGrounded && isGrounded)
         {
-            canUseAirSpecialAction = true;
+            canDoubleJump = true;
+            canUseAirDashOrSpin = true;
+            hasUsedGroundSlam = false;
+            airActionsLockedUntilGrounded = false;
         }
 
-        if (isGrounded && !isDashing && !isSpinning)
+        if (isGrounded && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering)
         {
-            canUseAirSpecialAction = true;
+            canDoubleJump = true;
+            canUseAirDashOrSpin = true;
+            hasUsedGroundSlam = false;
+            airActionsLockedUntilGrounded = false;
         }
     }
 
-    private bool CanStartSpecialAction()
+    private void HandleUppercutBuffer()
     {
-        if (!canUseSharedSpecialAction)
+        if (uppercutBufferTimer > 0f)
+        {
+            uppercutBufferTimer -= Time.deltaTime;
+        }
+    }
+
+    private void HandleCrawlState()
+    {
+        bool crawlHeld = Keyboard.current != null && Keyboard.current.leftCtrlKey.isPressed;
+        bool wantsToCrawl = isGrounded && crawlHeld && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering;
+
+        if (wantsToCrawl)
+        {
+            isCrawling = true;
+            crawlTimer += Time.deltaTime;
+            return;
+        }
+
+        if (!preventStandingWhenBlocked || CanStandUp())
+        {
+            isCrawling = false;
+            crawlTimer = 0f;
+        }
+    }
+
+    private void ApplyCrawlSize()
+    {
+        if (isCrawling)
+        {
+            characterController.height = crawlHeight;
+            characterController.center = new Vector3(standingCenter.x, crawlHeight * 0.5f, standingCenter.z);
+        }
+        else
+        {
+            characterController.height = standingHeight;
+            characterController.center = standingCenter;
+        }
+    }
+
+    private bool CanStandUp()
+    {
+        Vector3 checkPosition = transform.position + standingCenter + Vector3.up * ((standingHeight * 0.5f) - standCheckRadius);
+        return !Physics.CheckSphere(checkPosition, standCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
+    }
+
+    private bool CanStartDashOrSpin()
+    {
+        if (airActionsLockedUntilGrounded)
         {
             return false;
         }
 
-        if (isDashing || isSpinning)
+        if (!canUseSharedDashSpinAction)
         {
             return false;
         }
 
-        if (limitAirSpecialActions && !isGrounded && !canUseAirSpecialAction)
+        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering)
+        {
+            return false;
+        }
+
+        if (limitAirSpecialActions && !isGrounded && !canUseAirDashOrSpin)
         {
             return false;
         }
@@ -166,9 +292,39 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private void UseSpecialAction()
+    private bool CanStartGroundSlam()
     {
-        canUseSharedSpecialAction = false;
+        if (airActionsLockedUntilGrounded)
+        {
+            return false;
+        }
+
+        if (isGrounded)
+        {
+            return false;
+        }
+
+        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering)
+        {
+            return false;
+        }
+
+        if (hasUsedGroundSlam)
+        {
+            return false;
+        }
+
+        if (!allowGroundSlamAfterDashOrSpin && limitAirSpecialActions && !canUseAirDashOrSpin)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void UseAirDashOrSpin()
+    {
+        canUseSharedDashSpinAction = false;
 
         if (sharedCooldownCoroutine != null)
         {
@@ -177,8 +333,24 @@ public class PlayerController : MonoBehaviour
 
         if (limitAirSpecialActions && !isGrounded)
         {
-            canUseAirSpecialAction = false;
+            canUseAirDashOrSpin = false;
+            canDoubleJump = false;
         }
+    }
+
+    private void UseGroundSlam()
+    {
+        hasUsedGroundSlam = true;
+        canUseAirDashOrSpin = false;
+        canDoubleJump = false;
+    }
+
+    private void LockAirActionsUntilGrounded()
+    {
+        airActionsLockedUntilGrounded = true;
+        canDoubleJump = false;
+        canUseAirDashOrSpin = false;
+        hasUsedGroundSlam = true;
     }
 
     private void ResetSharedSpecialActionCooldown()
@@ -189,7 +361,7 @@ public class PlayerController : MonoBehaviour
             sharedCooldownCoroutine = null;
         }
 
-        canUseSharedSpecialAction = true;
+        canUseSharedDashSpinAction = true;
     }
 
     private void StartSharedSpecialActionCooldown()
@@ -205,7 +377,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator SharedSpecialActionCooldown()
     {
         yield return new WaitForSeconds(sharedSpecialActionCooldown);
-        canUseSharedSpecialAction = true;
+        canUseSharedDashSpinAction = true;
         sharedCooldownCoroutine = null;
     }
 
@@ -228,8 +400,8 @@ public class PlayerController : MonoBehaviour
         }
 
         bool sprintHeld = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
-        bool canSprint = sprintHeld && (!sprintOnlyWhileGrounded || isGrounded);
-        float currentSpeed = canSprint ? sprintSpeed : moveSpeed;
+        bool canSprint = sprintHeld && !isCrawling && (!sprintOnlyWhileGrounded || isGrounded);
+        float currentSpeed = isCrawling ? crawlSpeed : canSprint ? sprintSpeed : moveSpeed;
 
         characterController.Move(currentMoveDirection * currentSpeed * Time.deltaTime);
 
@@ -242,10 +414,27 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJump()
     {
-        if (jumpPressed && isGrounded)
+        if (jumpPressed && isGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
+        {
+            velocity.y = Mathf.Sqrt(crawlHighJumpHeight * -2f * gravity);
+            LockAirActionsUntilGrounded();
+        }
+        else if (jumpPressed && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            canUseAirSpecialAction = true;
+            canDoubleJump = true;
+            canUseAirDashOrSpin = true;
+
+            if (resetSpecialActionCooldownOnJump)
+            {
+                ResetSharedSpecialActionCooldown();
+            }
+        }
+        else if (jumpPressed && allowDoubleJump && !isGrounded && canDoubleJump && !airActionsLockedUntilGrounded)
+        {
+            velocity.y = Mathf.Sqrt(doubleJumpHeight * -2f * gravity);
+            canDoubleJump = false;
+            canUseAirDashOrSpin = true;
 
             if (resetSpecialActionCooldownOnJump)
             {
@@ -273,9 +462,11 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Dash()
     {
-        UseSpecialAction();
+        UseAirDashOrSpin();
 
         isDashing = true;
+        uppercutRequested = false;
+        uppercutBufferTimer = 0f;
 
         Vector3 dashDirection = currentMoveDirection;
 
@@ -302,20 +493,40 @@ public class PlayerController : MonoBehaviour
         }
 
         isDashing = false;
-
-        yield return new WaitForSeconds(dashAttackExtraTime);
+        uppercutBufferTimer = uppercutInputBufferTime;
 
         if (dashAttackBox != null)
         {
             dashAttackBox.SetActive(false);
         }
 
+        float bufferTimer = uppercutInputBufferTime;
+
+        while (bufferTimer > 0f)
+        {
+            if (uppercutRequested && isGrounded)
+            {
+                uppercutRequested = false;
+                uppercutBufferTimer = 0f;
+                StartCoroutine(Uppercut());
+                yield break;
+            }
+
+            bufferTimer -= Time.deltaTime;
+            yield return null;
+        }
+
+        uppercutRequested = false;
+        uppercutBufferTimer = 0f;
+
+        yield return new WaitForSeconds(dashAttackExtraTime);
+
         StartSharedSpecialActionCooldown();
     }
 
     private IEnumerator Spin()
     {
-        UseSpecialAction();
+        UseAirDashOrSpin();
 
         isSpinning = true;
 
@@ -332,6 +543,79 @@ public class PlayerController : MonoBehaviour
         }
 
         isSpinning = false;
+
+        StartSharedSpecialActionCooldown();
+    }
+
+    private IEnumerator GroundSlam()
+    {
+        UseGroundSlam();
+
+        isGroundSlamming = true;
+        velocity = Vector3.zero;
+
+        if (groundSlamAttackBox != null)
+        {
+            groundSlamAttackBox.SetActive(true);
+        }
+
+        float hoverTimer = 0f;
+
+        while (hoverTimer < groundSlamHoverTime)
+        {
+            hoverTimer += Time.deltaTime;
+            yield return null;
+        }
+
+        while (!isGrounded)
+        {
+            velocity.y += groundSlamGravity * Time.deltaTime;
+            characterController.Move(velocity * Time.deltaTime);
+            CheckGrounded();
+            yield return null;
+        }
+
+        velocity.y = -2f;
+
+        yield return new WaitForSeconds(groundSlamImpactTime);
+
+        if (groundSlamAttackBox != null)
+        {
+            groundSlamAttackBox.SetActive(false);
+        }
+
+        isGroundSlamming = false;
+    }
+
+    private IEnumerator Uppercut()
+    {
+        LockAirActionsUntilGrounded();
+
+        isUppercutHovering = true;
+        velocity = Vector3.zero;
+
+        if (uppercutAttackBox != null)
+        {
+            uppercutAttackBox.SetActive(true);
+        }
+
+        float hoverTimer = 0f;
+
+        while (hoverTimer < uppercutHoverTime)
+        {
+            hoverTimer += Time.deltaTime;
+            yield return null;
+        }
+
+        velocity.y = Mathf.Sqrt(uppercutJumpHeight * -2f * gravity);
+        isUppercutHovering = false;
+
+        yield return new WaitForSeconds(uppercutAttackTime);
+
+        if (uppercutAttackBox != null)
+        {
+            uppercutAttackBox.SetActive(false);
+        }
 
         StartSharedSpecialActionCooldown();
     }
