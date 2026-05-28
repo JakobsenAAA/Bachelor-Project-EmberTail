@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float crawlHighJumpHeight = 3.5f;
     [SerializeField] private bool preventStandingWhenBlocked = true;
     [SerializeField] private float standCheckRadius = 0.25f;
+    [SerializeField] private float crawlGroundedGraceTime = 0.15f;
 
     [Header("Dash")]
     [SerializeField] private float dashSpeed = 16f;
@@ -70,8 +71,10 @@ public class PlayerController : MonoBehaviour
     private Coroutine sharedCooldownCoroutine;
     private float standingHeight;
     private Vector3 standingCenter;
+    private float standingBottomY;
     private float crawlTimer;
     private float uppercutBufferTimer;
+    private float lastGroundedTime;
     private bool jumpPressed;
     private bool uppercutRequested;
     private bool isGrounded;
@@ -80,6 +83,7 @@ public class PlayerController : MonoBehaviour
     private bool isSpinning;
     private bool isGroundSlamming;
     private bool isUppercutHovering;
+    private bool isUppercutMovementLocked;
     private bool isCrawling;
     private bool canDoubleJump;
     private bool canUseAirDashOrSpin = true;
@@ -94,6 +98,7 @@ public class PlayerController : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         standingHeight = characterController.height;
         standingCenter = characterController.center;
+        standingBottomY = standingCenter.y - standingHeight * 0.5f;
 
         if (dashAttackBox != null)
         {
@@ -124,9 +129,13 @@ public class PlayerController : MonoBehaviour
         HandleCrawlState();
         ApplyCrawlSize();
 
-        if (!isDashing && !isGroundSlamming && !isUppercutHovering)
+        if (!isDashing && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked)
         {
             HandleMovement();
+            HandleJump();
+        }
+        else if (!isDashing && !isGroundSlamming && !isUppercutHovering)
+        {
             HandleJump();
         }
 
@@ -195,6 +204,11 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
 
+        if (isGrounded)
+        {
+            lastGroundedTime = Time.time;
+        }
+
         if (isGrounded && velocity.y < 0f && !isGroundSlamming)
         {
             velocity.y = -2f;
@@ -209,6 +223,7 @@ public class PlayerController : MonoBehaviour
             canUseAirDashOrSpin = true;
             hasUsedGroundSlam = false;
             airActionsLockedUntilGrounded = false;
+            isUppercutMovementLocked = false;
         }
 
         if (isGrounded && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering)
@@ -217,6 +232,7 @@ public class PlayerController : MonoBehaviour
             canUseAirDashOrSpin = true;
             hasUsedGroundSlam = false;
             airActionsLockedUntilGrounded = false;
+            isUppercutMovementLocked = false;
         }
     }
 
@@ -231,7 +247,8 @@ public class PlayerController : MonoBehaviour
     private void HandleCrawlState()
     {
         bool crawlHeld = Keyboard.current != null && Keyboard.current.leftCtrlKey.isPressed;
-        bool wantsToCrawl = isGrounded && crawlHeld && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering;
+        bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
+        bool wantsToCrawl = crawlHeld && recentlyGrounded && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked;
 
         if (wantsToCrawl)
         {
@@ -252,7 +269,7 @@ public class PlayerController : MonoBehaviour
         if (isCrawling)
         {
             characterController.height = crawlHeight;
-            characterController.center = new Vector3(standingCenter.x, crawlHeight * 0.5f, standingCenter.z);
+            characterController.center = new Vector3(standingCenter.x, standingBottomY + crawlHeight * 0.5f, standingCenter.z);
         }
         else
         {
@@ -279,7 +296,7 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
-        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering)
+        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering || isUppercutMovementLocked)
         {
             return false;
         }
@@ -304,7 +321,7 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
-        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering)
+        if (isDashing || isSpinning || isGroundSlamming || isUppercutHovering || isUppercutMovementLocked)
         {
             return false;
         }
@@ -414,10 +431,14 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJump()
     {
-        if (jumpPressed && isGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
+        bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
+
+        if (jumpPressed && recentlyGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
         {
             velocity.y = Mathf.Sqrt(crawlHighJumpHeight * -2f * gravity);
             LockAirActionsUntilGrounded();
+            isCrawling = false;
+            crawlTimer = 0f;
         }
         else if (jumpPressed && isGrounded)
         {
@@ -447,6 +468,12 @@ public class PlayerController : MonoBehaviour
 
     private void HandleGravity()
     {
+        if (isUppercutMovementLocked)
+        {
+            velocity.x = 0f;
+            velocity.z = 0f;
+        }
+
         if (isSpinning && !isGrounded && velocity.y < 0f)
         {
             velocity.y += gravity * airSpinGravityMultiplier * Time.deltaTime;
@@ -592,7 +619,9 @@ public class PlayerController : MonoBehaviour
         LockAirActionsUntilGrounded();
 
         isUppercutHovering = true;
+        isUppercutMovementLocked = true;
         velocity = Vector3.zero;
+        currentMoveDirection = Vector3.zero;
 
         if (uppercutAttackBox != null)
         {
@@ -603,10 +632,12 @@ public class PlayerController : MonoBehaviour
 
         while (hoverTimer < uppercutHoverTime)
         {
+            characterController.Move(Vector3.zero);
             hoverTimer += Time.deltaTime;
             yield return null;
         }
 
+        velocity = Vector3.zero;
         velocity.y = Mathf.Sqrt(uppercutJumpHeight * -2f * gravity);
         isUppercutHovering = false;
 

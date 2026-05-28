@@ -1326,11 +1326,12 @@ MonoBehaviour:
   sprintOnlyWhileGrounded: 1
   allowDoubleJump: 1
   crawlSpeed: 2.5
-  crawlHeight: 0.5
+  crawlHeight: 1
   crawlHoldTimeForHighJump: 1
   crawlHighJumpHeight: 10
   preventStandingWhenBlocked: 1
   standCheckRadius: 0.25
+  crawlGroundedGraceTime: 0.2
   dashSpeed: 16
   dashDuration: 0.3
   dashAttackExtraTime: 0.08
