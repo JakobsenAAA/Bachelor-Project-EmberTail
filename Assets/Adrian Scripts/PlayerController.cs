@@ -91,6 +91,7 @@ public class PlayerController : MonoBehaviour
     private bool canUseSharedDashSpinAction = true;
     private bool hasUsedGroundSlam;
     private bool airActionsLockedUntilGrounded;
+    private bool gameplayInputEnabled = true;
 
     public Vector2 LookInput => lookInput;
 
@@ -164,16 +165,33 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            moveInput = Vector2.zero;
+            return;
+        }
+
         moveInput = value.Get<Vector2>();
     }
 
     public void OnLook(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            lookInput = Vector2.zero;
+            return;
+        }
+
         lookInput = value.Get<Vector2>();
     }
 
     public void OnJump(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            return;
+        }
+
         if (value.isPressed)
         {
             if (SlideMovementActive)
@@ -199,6 +217,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnDash(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            return;
+        }
+
         if (value.isPressed && CanStartDashOrSpin())
         {
             StartCoroutine(Dash());
@@ -207,6 +230,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnSpin(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            return;
+        }
+
         if (value.isPressed && CanStartDashOrSpin())
         {
             StartCoroutine(Spin());
@@ -215,9 +243,27 @@ public class PlayerController : MonoBehaviour
 
     public void OnGroundSlam(InputValue value)
     {
+        if (!gameplayInputEnabled)
+        {
+            return;
+        }
+
         if (value.isPressed && CanStartGroundSlam())
         {
             StartCoroutine(GroundSlam());
+        }
+    }
+
+    public void SetGameplayInputEnabled(bool enabled)
+    {
+        gameplayInputEnabled = enabled;
+
+        if (!enabled)
+        {
+            moveInput = Vector2.zero;
+            lookInput = Vector2.zero;
+            jumpPressed = false;
+            uppercutRequested = false;
         }
     }
 
@@ -267,9 +313,22 @@ public class PlayerController : MonoBehaviour
 
     private void HandleCrawlState()
     {
-        bool crawlHeld = Keyboard.current != null && Keyboard.current.leftCtrlKey.isPressed;
+        bool crawlHeld =
+            gameplayInputEnabled &&
+            Keyboard.current != null &&
+            Keyboard.current.leftCtrlKey.isPressed;
+
         bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
-        bool wantsToCrawl = crawlHeld && recentlyGrounded && !SlideMovementActive && !isDashing && !isSpinning && !isGroundSlamming && !isUppercutHovering && !isUppercutMovementLocked;
+
+        bool wantsToCrawl =
+            crawlHeld &&
+            recentlyGrounded &&
+            !SlideMovementActive &&
+            !isDashing &&
+            !isSpinning &&
+            !isGroundSlamming &&
+            !isUppercutHovering &&
+            !isUppercutMovementLocked;
 
         if (wantsToCrawl)
         {
@@ -290,7 +349,12 @@ public class PlayerController : MonoBehaviour
         if (isCrawling)
         {
             characterController.height = crawlHeight;
-            characterController.center = new Vector3(standingCenter.x, standingBottomY + crawlHeight * 0.5f, standingCenter.z);
+            characterController.center =
+                new Vector3(
+                    standingCenter.x,
+                    standingBottomY + crawlHeight * 0.5f,
+                    standingCenter.z
+                );
         }
         else
         {
@@ -301,8 +365,17 @@ public class PlayerController : MonoBehaviour
 
     private bool CanStandUp()
     {
-        Vector3 checkPosition = transform.position + standingCenter + Vector3.up * ((standingHeight * 0.5f) - standCheckRadius);
-        return !Physics.CheckSphere(checkPosition, standCheckRadius, groundLayer, QueryTriggerInteraction.Ignore);
+        Vector3 checkPosition =
+            transform.position +
+            standingCenter +
+            Vector3.up * ((standingHeight * 0.5f) - standCheckRadius);
+
+        return !Physics.CheckSphere(
+            checkPosition,
+            standCheckRadius,
+            groundLayer,
+            QueryTriggerInteraction.Ignore
+        );
     }
 
     private bool CanStartDashOrSpin()
@@ -440,40 +513,77 @@ public class PlayerController : MonoBehaviour
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        currentMoveDirection = cameraForward * moveInput.y + cameraRight * moveInput.x;
+        currentMoveDirection =
+            cameraForward * moveInput.y +
+            cameraRight * moveInput.x;
 
         if (currentMoveDirection.sqrMagnitude > 1f)
         {
             currentMoveDirection.Normalize();
         }
 
-        bool sprintHeld = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
-        bool canSprint = sprintHeld && !isCrawling && (!sprintOnlyWhileGrounded || isGrounded);
-        float currentSpeed = isCrawling ? crawlSpeed : canSprint ? sprintSpeed : moveSpeed;
+        bool sprintHeld =
+            gameplayInputEnabled &&
+            Keyboard.current != null &&
+            Keyboard.current.leftShiftKey.isPressed;
 
-        characterController.Move(currentMoveDirection * currentSpeed * Time.deltaTime);
+        bool canSprint =
+            sprintHeld &&
+            !isCrawling &&
+            (!sprintOnlyWhileGrounded || isGrounded);
+
+        float currentSpeed =
+            isCrawling
+                ? crawlSpeed
+                : canSprint
+                    ? sprintSpeed
+                    : moveSpeed;
+
+        characterController.Move(
+            currentMoveDirection *
+            currentSpeed *
+            Time.deltaTime
+        );
 
         if (currentMoveDirection.sqrMagnitude > 0.01f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(currentMoveDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            Quaternion targetRotation =
+                Quaternion.LookRotation(currentMoveDirection);
+
+            transform.rotation =
+                Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
         }
     }
 
     private void HandleJump()
     {
-        bool recentlyGrounded = Time.time - lastGroundedTime <= crawlGroundedGraceTime;
+        bool recentlyGrounded =
+            Time.time - lastGroundedTime <= crawlGroundedGraceTime;
 
-        if (jumpPressed && recentlyGrounded && isCrawling && crawlTimer >= crawlHoldTimeForHighJump)
+        if (
+            jumpPressed &&
+            recentlyGrounded &&
+            isCrawling &&
+            crawlTimer >= crawlHoldTimeForHighJump
+        )
         {
-            velocity.y = Mathf.Sqrt(crawlHighJumpHeight * -2f * gravity);
+            velocity.y =
+                Mathf.Sqrt(crawlHighJumpHeight * -2f * gravity);
+
             LockAirActionsUntilGrounded();
+
             isCrawling = false;
             crawlTimer = 0f;
         }
         else if (jumpPressed && isGrounded)
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            velocity.y =
+                Mathf.Sqrt(jumpHeight * -2f * gravity);
+
             canDoubleJump = true;
             canUseAirDashOrSpin = true;
 
@@ -482,9 +592,17 @@ public class PlayerController : MonoBehaviour
                 ResetSharedSpecialActionCooldown();
             }
         }
-        else if (jumpPressed && allowDoubleJump && !isGrounded && canDoubleJump && !airActionsLockedUntilGrounded)
+        else if (
+            jumpPressed &&
+            allowDoubleJump &&
+            !isGrounded &&
+            canDoubleJump &&
+            !airActionsLockedUntilGrounded
+        )
         {
-            velocity.y = Mathf.Sqrt(doubleJumpHeight * -2f * gravity);
+            velocity.y =
+                Mathf.Sqrt(doubleJumpHeight * -2f * gravity);
+
             canDoubleJump = false;
             canUseAirDashOrSpin = true;
 
@@ -507,15 +625,26 @@ public class PlayerController : MonoBehaviour
 
         if (isSpinning && !isGrounded && velocity.y < 0f)
         {
-            velocity.y += gravity * airSpinGravityMultiplier * Time.deltaTime;
-            velocity.y = Mathf.Max(velocity.y, -airSpinMaxFallSpeed);
+            velocity.y +=
+                gravity *
+                airSpinGravityMultiplier *
+                Time.deltaTime;
+
+            velocity.y =
+                Mathf.Max(
+                    velocity.y,
+                    -airSpinMaxFallSpeed
+                );
         }
         else
         {
             velocity.y += gravity * Time.deltaTime;
         }
 
-        characterController.Move(velocity * Time.deltaTime);
+        characterController.Move(
+            velocity *
+            Time.deltaTime
+        );
     }
 
     private IEnumerator Dash()
@@ -545,7 +674,12 @@ public class PlayerController : MonoBehaviour
 
         while (timer < dashDuration)
         {
-            characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
+            characterController.Move(
+                dashDirection *
+                dashSpeed *
+                Time.deltaTime
+            );
+
             timer += Time.deltaTime;
             yield return null;
         }
@@ -566,7 +700,9 @@ public class PlayerController : MonoBehaviour
             {
                 uppercutRequested = false;
                 uppercutBufferTimer = 0f;
+
                 StartCoroutine(Uppercut());
+
                 yield break;
             }
 
@@ -577,7 +713,9 @@ public class PlayerController : MonoBehaviour
         uppercutRequested = false;
         uppercutBufferTimer = 0f;
 
-        yield return new WaitForSeconds(dashAttackExtraTime);
+        yield return new WaitForSeconds(
+            dashAttackExtraTime
+        );
 
         StartSharedSpecialActionCooldown();
     }
@@ -593,7 +731,9 @@ public class PlayerController : MonoBehaviour
             spinAttackBox.SetActive(true);
         }
 
-        yield return new WaitForSeconds(spinDuration);
+        yield return new WaitForSeconds(
+            spinDuration
+        );
 
         if (spinAttackBox != null)
         {
@@ -627,15 +767,25 @@ public class PlayerController : MonoBehaviour
 
         while (!isGrounded)
         {
-            velocity.y += groundSlamGravity * Time.deltaTime;
-            characterController.Move(velocity * Time.deltaTime);
+            velocity.y +=
+                groundSlamGravity *
+                Time.deltaTime;
+
+            characterController.Move(
+                velocity *
+                Time.deltaTime
+            );
+
             CheckGrounded();
+
             yield return null;
         }
 
         velocity.y = -2f;
 
-        yield return new WaitForSeconds(groundSlamImpactTime);
+        yield return new WaitForSeconds(
+            groundSlamImpactTime
+        );
 
         if (groundSlamAttackBox != null)
         {
@@ -651,6 +801,7 @@ public class PlayerController : MonoBehaviour
 
         isUppercutHovering = true;
         isUppercutMovementLocked = true;
+
         velocity = Vector3.zero;
         currentMoveDirection = Vector3.zero;
 
@@ -664,15 +815,26 @@ public class PlayerController : MonoBehaviour
         while (hoverTimer < uppercutHoverTime)
         {
             characterController.Move(Vector3.zero);
+
             hoverTimer += Time.deltaTime;
+
             yield return null;
         }
 
         velocity = Vector3.zero;
-        velocity.y = Mathf.Sqrt(uppercutJumpHeight * -2f * gravity);
+
+        velocity.y =
+            Mathf.Sqrt(
+                uppercutJumpHeight *
+                -2f *
+                gravity
+            );
+
         isUppercutHovering = false;
 
-        yield return new WaitForSeconds(uppercutAttackTime);
+        yield return new WaitForSeconds(
+            uppercutAttackTime
+        );
 
         if (uppercutAttackBox != null)
         {

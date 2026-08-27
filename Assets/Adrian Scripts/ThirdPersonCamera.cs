@@ -22,6 +22,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private float yaw;
     private float pitch;
+    private bool cameraInputEnabled = true;
 
     private void Start()
     {
@@ -31,11 +32,14 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void LateUpdate()
     {
-        Vector2 lookInput = playerController.LookInput;
+        if (cameraInputEnabled)
+        {
+            Vector2 lookInput = playerController.LookInput;
 
-        yaw += lookInput.x * mouseSensitivity;
-        pitch -= lookInput.y * mouseSensitivity;
-        pitch = Mathf.Clamp(pitch, minVerticalAngle, maxVerticalAngle);
+            yaw += lookInput.x * mouseSensitivity;
+            pitch -= lookInput.y * mouseSensitivity;
+            pitch = Mathf.Clamp(pitch, minVerticalAngle, maxVerticalAngle);
+        }
 
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
         Vector3 targetPosition = target.position + Vector3.up * height;
@@ -50,7 +54,17 @@ public class ThirdPersonCamera : MonoBehaviour
             desiredPosition = targetPosition + desiredDirection * finalDistance;
         }
 
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, cameraSmoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desiredPosition,
+            cameraSmoothSpeed * Time.deltaTime
+        );
+
         transform.LookAt(targetPosition);
+    }
+
+    public void SetCameraInputEnabled(bool enabled)
+    {
+        cameraInputEnabled = enabled;
     }
 }
