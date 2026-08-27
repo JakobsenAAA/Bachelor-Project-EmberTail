@@ -5,6 +5,7 @@ public class PlayerRespawn : MonoBehaviour
 {
     [SerializeField] private Transform startingRespawnPoint;
     [SerializeField] private PlayerHealth playerHealth;
+    [SerializeField] private EnemyRespawnManager enemyRespawnManager;
 
     private CharacterController characterController;
     private Vector3 currentRespawnPosition;
@@ -17,6 +18,11 @@ public class PlayerRespawn : MonoBehaviour
         if (playerHealth == null)
         {
             playerHealth = GetComponent<PlayerHealth>();
+        }
+
+        if (enemyRespawnManager == null)
+        {
+            enemyRespawnManager = FindFirstObjectByType<EnemyRespawnManager>();
         }
 
         if (startingRespawnPoint != null)
@@ -56,12 +62,22 @@ public class PlayerRespawn : MonoBehaviour
     public void Respawn()
     {
         characterController.enabled = false;
-        transform.SetPositionAndRotation(currentRespawnPosition, currentRespawnRotation);
+
+        transform.SetPositionAndRotation(
+            currentRespawnPosition,
+            currentRespawnRotation
+        );
+
         characterController.enabled = true;
 
         if (playerHealth != null)
         {
             playerHealth.RestoreFullHealth();
+        }
+
+        if (enemyRespawnManager != null)
+        {
+            enemyRespawnManager.ResetAllEnemies();
         }
     }
 }

@@ -1018,8 +1018,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48d46d96373e18f4695bcd993b6c669e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  destroyOnDeath: 1
-  destroyDelay: 0
+  deathDelay: 0
   deathEffect: {fileID: 0}
   cinderPrefab: {fileID: 5072053995061156550, guid: c7d4f1f33dbcb24469e971563f913ddc, type: 3}
   cinderDropAmount: 5
@@ -2554,6 +2553,50 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 450638522}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &496016662
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 496016663}
+  - component: {fileID: 496016664}
+  m_Layer: 0
+  m_Name: EnemyRespawnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &496016663
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 496016662}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1130511016}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &496016664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 496016662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a570c17bc86aaa347932b473eae0bfe5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyRespawnManager
 --- !u!1 &502563847
 GameObject:
   m_ObjectHideFlags: 0
@@ -4382,6 +4425,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2101789939}
+  - {fileID: 496016663}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1147322274
@@ -4739,6 +4783,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRespawn
   startingRespawnPoint: {fileID: 1583677421}
   playerHealth: {fileID: 1149413971}
+  enemyRespawnManager: {fileID: 496016664}
 --- !u!114 &1149413973
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5598,8 +5643,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48d46d96373e18f4695bcd993b6c669e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  destroyOnDeath: 1
-  destroyDelay: 0
+  deathDelay: 0
   deathEffect: {fileID: 0}
   cinderPrefab: {fileID: 5072053995061156550, guid: c7d4f1f33dbcb24469e971563f913ddc, type: 3}
   cinderDropAmount: 5
