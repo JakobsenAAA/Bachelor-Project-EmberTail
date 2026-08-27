@@ -10,6 +10,9 @@ public class PauseManager : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     [SerializeField] private ThirdPersonCamera thirdPersonCamera;
 
+    [Header("Pause Map")]
+    [SerializeField] private PauseMapController pauseMapController;
+
     private bool isPaused;
 
     public bool IsPaused => isPaused;
@@ -26,7 +29,10 @@ public class PauseManager : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (
+            Keyboard.current.escapeKey
+                .wasPressedThisFrame
+        )
         {
             TogglePause();
         }
@@ -57,17 +63,25 @@ public class PauseManager : MonoBehaviour
 
         if (playerController != null)
         {
-            playerController.SetGameplayInputEnabled(false);
+            playerController
+                .SetGameplayInputEnabled(false);
         }
 
         if (thirdPersonCamera != null)
         {
-            thirdPersonCamera.SetCameraInputEnabled(false);
+            thirdPersonCamera
+                .SetCameraInputEnabled(false);
         }
 
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(true);
+        }
+
+        if (pauseMapController != null)
+        {
+            pauseMapController
+                .FocusPlayerLocation();
         }
 
         ApplyCursorState();
@@ -81,12 +95,14 @@ public class PauseManager : MonoBehaviour
 
         if (playerController != null)
         {
-            playerController.SetGameplayInputEnabled(true);
+            playerController
+                .SetGameplayInputEnabled(true);
         }
 
         if (thirdPersonCamera != null)
         {
-            thirdPersonCamera.SetCameraInputEnabled(true);
+            thirdPersonCamera
+                .SetCameraInputEnabled(true);
         }
 
         if (pauseMenu != null)
@@ -101,12 +117,16 @@ public class PauseManager : MonoBehaviour
     {
         if (isPaused)
         {
-            Cursor.lockState = CursorLockMode.None;
+            Cursor.lockState =
+                CursorLockMode.None;
+
             Cursor.visible = true;
         }
         else
         {
-            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.lockState =
+                CursorLockMode.Locked;
+
             Cursor.visible = false;
         }
     }
@@ -115,7 +135,9 @@ public class PauseManager : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        Cursor.lockState = CursorLockMode.None;
+        Cursor.lockState =
+            CursorLockMode.None;
+
         Cursor.visible = true;
     }
 }

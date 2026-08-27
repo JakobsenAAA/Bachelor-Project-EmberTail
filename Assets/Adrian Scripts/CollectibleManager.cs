@@ -6,15 +6,16 @@ public class CollectibleManager : MonoBehaviour
 {
     public static CollectibleManager Instance { get; private set; }
 
-    [Header("Zones")]
-    [SerializeField] private List<ZoneProgressDefinition> zones = new List<ZoneProgressDefinition>();
+    [Header("Progression Discs")]
+    [SerializeField] private List<ProgressionDiscDefinition> discs =
+        new List<ProgressionDiscDefinition>();
 
     public UnityEvent OnCollectiblesChanged;
 
     private readonly Dictionary<string, ZoneRuntimeProgress> zoneProgress =
         new Dictionary<string, ZoneRuntimeProgress>();
 
-    public IReadOnlyList<ZoneProgressDefinition> Zones => zones;
+    public IReadOnlyList<ProgressionDiscDefinition> Discs => discs;
 
     private void Awake()
     {
@@ -39,28 +40,48 @@ public class CollectibleManager : MonoBehaviour
     {
         zoneProgress.Clear();
 
-        for (int i = 0; i < zones.Count; i++)
+        for (int discIndex = 0; discIndex < discs.Count; discIndex++)
         {
-            ZoneProgressDefinition zone = zones[i];
+            ProgressionDiscDefinition disc = discs[discIndex];
 
-            if (zone == null)
+            if (disc == null)
             {
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(zone.ZoneId))
+            for (int zoneIndex = 0; zoneIndex < disc.Zones.Count; zoneIndex++)
             {
-                Debug.LogError("A zone in CollectibleManager has no Zone ID.");
-                continue;
-            }
+                ZoneProgressDefinition zone = disc.Zones[zoneIndex];
 
-            if (zoneProgress.ContainsKey(zone.ZoneId))
-            {
-                Debug.LogError("Duplicate Zone ID found: " + zone.ZoneId);
-                continue;
-            }
+                if (zone == null)
+                {
+                    continue;
+                }
 
-            zoneProgress.Add(zone.ZoneId, new ZoneRuntimeProgress());
+                if (string.IsNullOrWhiteSpace(zone.ZoneId))
+                {
+                    Debug.LogError(
+                        "A zone in CollectibleManager has no Zone ID."
+                    );
+
+                    continue;
+                }
+
+                if (zoneProgress.ContainsKey(zone.ZoneId))
+                {
+                    Debug.LogError(
+                        "Duplicate Zone ID found: " +
+                        zone.ZoneId
+                    );
+
+                    continue;
+                }
+
+                zoneProgress.Add(
+                    zone.ZoneId,
+                    new ZoneRuntimeProgress()
+                );
+            }
         }
     }
 
@@ -75,38 +96,57 @@ public class CollectibleManager : MonoBehaviour
             return;
         }
 
-        if (!zoneProgress.TryGetValue(zoneId, out ZoneRuntimeProgress progress))
+        if (!zoneProgress.TryGetValue(
+                zoneId,
+                out ZoneRuntimeProgress progress
+            ))
         {
-            Debug.LogWarning("Unknown Zone ID: " + zoneId);
+            Debug.LogWarning(
+                "Unknown Zone ID: " +
+                zoneId
+            );
+
             return;
         }
 
-        int total = GetTotal(zoneId, type);
+        int total = GetTotal(
+            zoneId,
+            type
+        );
 
         switch (type)
         {
             case CollectibleType.Collectible1:
-                progress.collectible1 = Mathf.Clamp(
-                    progress.collectible1 + amount,
-                    0,
-                    total
-                );
+
+                progress.collectible1 =
+                    Mathf.Clamp(
+                        progress.collectible1 + amount,
+                        0,
+                        total
+                    );
+
                 break;
 
             case CollectibleType.Collectible2:
-                progress.collectible2 = Mathf.Clamp(
-                    progress.collectible2 + amount,
-                    0,
-                    total
-                );
+
+                progress.collectible2 =
+                    Mathf.Clamp(
+                        progress.collectible2 + amount,
+                        0,
+                        total
+                    );
+
                 break;
 
             case CollectibleType.Collectible3:
-                progress.collectible3 = Mathf.Clamp(
-                    progress.collectible3 + amount,
-                    0,
-                    total
-                );
+
+                progress.collectible3 =
+                    Mathf.Clamp(
+                        progress.collectible3 + amount,
+                        0,
+                        total
+                    );
+
                 break;
         }
 
@@ -118,7 +158,10 @@ public class CollectibleManager : MonoBehaviour
         CollectibleType type
     )
     {
-        if (!zoneProgress.TryGetValue(zoneId, out ZoneRuntimeProgress progress))
+        if (!zoneProgress.TryGetValue(
+                zoneId,
+                out ZoneRuntimeProgress progress
+            ))
         {
             return 0;
         }
@@ -144,7 +187,8 @@ public class CollectibleManager : MonoBehaviour
         CollectibleType type
     )
     {
-        ZoneProgressDefinition zone = GetZone(zoneId);
+        ZoneProgressDefinition zone =
+            GetZone(zoneId);
 
         if (zone == null)
         {
@@ -154,26 +198,159 @@ public class CollectibleManager : MonoBehaviour
         return zone.GetTotal(type);
     }
 
-    public ZoneProgressDefinition GetZone(string zoneId)
+    public ZoneProgressDefinition GetZone(
+        string zoneId
+    )
     {
-        for (int i = 0; i < zones.Count; i++)
+        for (int discIndex = 0; discIndex < discs.Count; discIndex++)
         {
-            if (zones[i] != null && zones[i].ZoneId == zoneId)
+            ProgressionDiscDefinition disc =
+                discs[discIndex];
+
+            if (disc == null)
             {
-                return zones[i];
+                continue;
+            }
+
+            for (int zoneIndex = 0; zoneIndex < disc.Zones.Count; zoneIndex++)
+            {
+                ZoneProgressDefinition zone =
+                    disc.Zones[zoneIndex];
+
+                if (
+                    zone != null &&
+                    zone.ZoneId == zoneId
+                )
+                {
+                    return zone;
+                }
             }
         }
 
         return null;
     }
 
-    public int GetProgressionZoneCount()
+    public ProgressionDiscDefinition GetDisc(
+        string discId
+    )
+    {
+        for (int i = 0; i < discs.Count; i++)
+        {
+            if (
+                discs[i] != null &&
+                discs[i].DiscId == discId
+            )
+            {
+                return discs[i];
+            }
+        }
+
+        return null;
+    }
+
+    public ProgressionDiscDefinition GetDiscContainingZone(
+        string zoneId
+    )
+    {
+        for (int discIndex = 0; discIndex < discs.Count; discIndex++)
+        {
+            ProgressionDiscDefinition disc =
+                discs[discIndex];
+
+            if (disc == null)
+            {
+                continue;
+            }
+
+            for (int zoneIndex = 0; zoneIndex < disc.Zones.Count; zoneIndex++)
+            {
+                ZoneProgressDefinition zone =
+                    disc.Zones[zoneIndex];
+
+                if (
+                    zone != null &&
+                    zone.ZoneId == zoneId
+                )
+                {
+                    return disc;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public int GetDiscIndexContainingZone(
+        string zoneId
+    )
+    {
+        for (int discIndex = 0; discIndex < discs.Count; discIndex++)
+        {
+            ProgressionDiscDefinition disc =
+                discs[discIndex];
+
+            if (disc == null)
+            {
+                continue;
+            }
+
+            for (int zoneIndex = 0; zoneIndex < disc.Zones.Count; zoneIndex++)
+            {
+                ZoneProgressDefinition zone =
+                    disc.Zones[zoneIndex];
+
+                if (
+                    zone != null &&
+                    zone.ZoneId == zoneId
+                )
+                {
+                    return discIndex;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public int GetZoneIndex(
+        string zoneId
+    )
+    {
+        ProgressionDiscDefinition disc =
+            GetDiscContainingZone(zoneId);
+
+        if (disc == null)
+        {
+            return -1;
+        }
+
+        for (int i = 0; i < disc.Zones.Count; i++)
+        {
+            ZoneProgressDefinition zone =
+                disc.Zones[i];
+
+            if (
+                zone != null &&
+                zone.ZoneId == zoneId
+            )
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public int GetProgressionDiscCount()
     {
         int count = 0;
 
-        for (int i = 0; i < zones.Count; i++)
+        for (int i = 0; i < discs.Count; i++)
         {
-            if (zones[i] != null && zones[i].ShowInProgression)
+            if (
+                discs[i] != null &&
+                discs[i].ShowInProgression
+            )
             {
                 count++;
             }
@@ -182,22 +359,28 @@ public class CollectibleManager : MonoBehaviour
         return count;
     }
 
-    public ZoneProgressDefinition GetProgressionZone(int progressionIndex)
+    public ProgressionDiscDefinition GetProgressionDisc(
+        int progressionIndex
+    )
     {
         int currentIndex = 0;
 
-        for (int i = 0; i < zones.Count; i++)
+        for (int i = 0; i < discs.Count; i++)
         {
-            ZoneProgressDefinition zone = zones[i];
+            ProgressionDiscDefinition disc =
+                discs[i];
 
-            if (zone == null || !zone.ShowInProgression)
+            if (
+                disc == null ||
+                !disc.ShowInProgression
+            )
             {
                 continue;
             }
 
             if (currentIndex == progressionIndex)
             {
-                return zone;
+                return disc;
             }
 
             currentIndex++;
@@ -208,7 +391,10 @@ public class CollectibleManager : MonoBehaviour
 
     public void ResetProgress()
     {
-        foreach (KeyValuePair<string, ZoneRuntimeProgress> entry in zoneProgress)
+        foreach (
+            KeyValuePair<string, ZoneRuntimeProgress> entry
+            in zoneProgress
+        )
         {
             entry.Value.collectible1 = 0;
             entry.Value.collectible2 = 0;
