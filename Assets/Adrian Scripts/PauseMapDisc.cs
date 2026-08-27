@@ -5,29 +5,39 @@ public class PauseMapDisc : MonoBehaviour
     [Header("Identity")]
     [SerializeField] private string discId;
 
+    [Header("Sections")]
+    [SerializeField] private int sectionCountOverride;
+
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 360f;
+    [SerializeField] private bool reverseRotation;
 
-    private int currentZoneIndex;
-    private int visibleZoneCount = 1;
+    private int currentSectionIndex;
+    private int sectionCount = 1;
     private float targetRotationY;
 
     public string DiscId => discId;
-    public int CurrentZoneIndex => currentZoneIndex;
+    public int CurrentSectionIndex => currentSectionIndex;
+    public int SectionCount => sectionCount;
 
-    public void Initialize(int startingZoneIndex, int zoneCount)
+    public void Initialize(int startingSectionIndex, int progressionZoneCount)
     {
-        visibleZoneCount = Mathf.Max(1, zoneCount);
+        if (sectionCountOverride > 0)
+        {
+            sectionCount = sectionCountOverride;
+        }
+        else
+        {
+            sectionCount = Mathf.Max(1, progressionZoneCount);
+        }
 
-        currentZoneIndex =
-            Mathf.Clamp(
-                startingZoneIndex,
-                0,
-                visibleZoneCount - 1
-            );
+        currentSectionIndex = Mathf.Clamp(
+            startingSectionIndex,
+            0,
+            sectionCount - 1
+        );
 
-        targetRotationY =
-            CalculateRotation(currentZoneIndex);
+        targetRotationY = CalculateRotation(currentSectionIndex);
 
         Vector3 euler = transform.localEulerAngles;
         euler.y = targetRotationY;
@@ -38,83 +48,74 @@ public class PauseMapDisc : MonoBehaviour
     {
         Vector3 euler = transform.localEulerAngles;
 
-        float currentY = euler.y;
+        float newY = Mathf.MoveTowardsAngle(
+            euler.y,
+            targetRotationY,
+            rotationSpeed * Time.unscaledDeltaTime
+        );
 
-        float newY =
-            Mathf.MoveTowardsAngle(
-                currentY,
-                targetRotationY,
-                rotationSpeed * Time.unscaledDeltaTime
-            );
-
-        transform.localEulerAngles =
-            new Vector3(
-                euler.x,
-                newY,
-                euler.z
-            );
+        transform.localEulerAngles = new Vector3(
+            euler.x,
+            newY,
+            euler.z
+        );
     }
 
     public void RotateLeft()
     {
-        if (visibleZoneCount <= 1)
+        if (sectionCount <= 1)
         {
             return;
         }
 
-        currentZoneIndex--;
+        currentSectionIndex--;
 
-        if (currentZoneIndex < 0)
+        if (currentSectionIndex < 0)
         {
-            currentZoneIndex =
-                visibleZoneCount - 1;
+            currentSectionIndex = sectionCount - 1;
         }
 
-        targetRotationY =
-            CalculateRotation(currentZoneIndex);
+        targetRotationY = CalculateRotation(currentSectionIndex);
     }
 
     public void RotateRight()
     {
-        if (visibleZoneCount <= 1)
+        if (sectionCount <= 1)
         {
             return;
         }
 
-        currentZoneIndex++;
+        currentSectionIndex++;
 
-        if (currentZoneIndex >= visibleZoneCount)
+        if (currentSectionIndex >= sectionCount)
         {
-            currentZoneIndex = 0;
+            currentSectionIndex = 0;
         }
 
-        targetRotationY =
-            CalculateRotation(currentZoneIndex);
+        targetRotationY = CalculateRotation(currentSectionIndex);
     }
 
-    public void SetZone(int zoneIndex)
+    public void SetSection(int sectionIndex)
     {
-        if (visibleZoneCount <= 0)
+        if (sectionCount <= 0)
         {
             return;
         }
 
-        currentZoneIndex =
-            Mathf.Clamp(
-                zoneIndex,
-                0,
-                visibleZoneCount - 1
-            );
+        currentSectionIndex = Mathf.Clamp(
+            sectionIndex,
+            0,
+            sectionCount - 1
+        );
 
-        targetRotationY =
-            CalculateRotation(currentZoneIndex);
+        targetRotationY = CalculateRotation(currentSectionIndex);
     }
 
-    private float CalculateRotation(int zoneIndex)
+    private float CalculateRotation(int sectionIndex)
     {
-        float anglePerZone =
-            360f / visibleZoneCount;
+        float anglePerSection = 360f / sectionCount;
+        float direction = reverseRotation ? 1f : -1f;
 
-        return -anglePerZone * zoneIndex;
+        return direction * anglePerSection * sectionIndex;
     }
 }

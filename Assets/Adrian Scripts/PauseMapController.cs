@@ -22,21 +22,19 @@ public class PauseMapController : MonoBehaviour
     private Vector3 stackStartPosition;
     private Vector3 targetStackPosition;
 
+    public int SelectedDiscIndex => selectedDiscIndex;
+
     private void Awake()
     {
         if (collectibleManager == null)
         {
-            collectibleManager =
-                CollectibleManager.Instance;
+            collectibleManager = CollectibleManager.Instance;
         }
 
         if (discStack != null)
         {
-            stackStartPosition =
-                discStack.localPosition;
-
-            targetStackPosition =
-                stackStartPosition;
+            stackStartPosition = discStack.localPosition;
+            targetStackPosition = stackStartPosition;
         }
     }
 
@@ -48,10 +46,7 @@ public class PauseMapController : MonoBehaviour
 
     private void Update()
     {
-        if (
-            pauseManager == null ||
-            !pauseManager.IsPaused
-        )
+        if (pauseManager == null || !pauseManager.IsPaused)
         {
             return;
         }
@@ -69,36 +64,35 @@ public class PauseMapController : MonoBehaviour
 
         if (Keyboard.current.aKey.wasPressedThisFrame)
         {
-            RotateLeft();
+            RotateSelectedDiscLeft();
         }
 
         if (Keyboard.current.dKey.wasPressedThisFrame)
         {
-            RotateRight();
+            RotateSelectedDiscRight();
         }
 
         if (Keyboard.current.wKey.wasPressedThisFrame)
         {
-            MoveDiscUp();
+            SelectPreviousDisc();
         }
 
         if (Keyboard.current.sKey.wasPressedThisFrame)
         {
-            MoveDiscDown();
+            SelectNextDisc();
         }
     }
 
     private void InitializeDiscs()
     {
-        if (collectibleManager == null)
+        if (collectibleManager == null || discObjects == null)
         {
             return;
         }
 
         for (int i = 0; i < discObjects.Length; i++)
         {
-            PauseMapDisc discObject =
-                discObjects[i];
+            PauseMapDisc discObject = discObjects[i];
 
             if (discObject == null)
             {
@@ -106,33 +100,31 @@ public class PauseMapController : MonoBehaviour
             }
 
             ProgressionDiscDefinition definition =
-                collectibleManager.GetDisc(
-                    discObject.DiscId
-                );
+                collectibleManager.GetDisc(discObject.DiscId);
 
-            if (definition == null)
+            int visibleZoneCount = 1;
+
+            if (definition != null)
             {
-                continue;
-            }
+                visibleZoneCount = 0;
 
-            int visibleZoneCount = 0;
-
-            for (
-                int zoneIndex = 0;
-                zoneIndex < definition.Zones.Count;
-                zoneIndex++
-            )
-            {
-                ZoneProgressDefinition zone =
-                    definition.Zones[zoneIndex];
-
-                if (
-                    zone != null &&
-                    zone.ShowInProgression
-                )
+                for (int zoneIndex = 0;
+                     zoneIndex < definition.Zones.Count;
+                     zoneIndex++)
                 {
-                    visibleZoneCount++;
+                    ZoneProgressDefinition zone =
+                        definition.Zones[zoneIndex];
+
+                    if (zone != null && zone.ShowInProgression)
+                    {
+                        visibleZoneCount++;
+                    }
                 }
+
+                visibleZoneCount = Mathf.Max(
+                    1,
+                    visibleZoneCount
+                );
             }
 
             discObject.Initialize(
@@ -144,72 +136,79 @@ public class PauseMapController : MonoBehaviour
 
     public void FocusPlayerLocation()
     {
-        if (collectibleManager == null)
+        if (collectibleManager == null || discObjects == null)
         {
             return;
         }
 
-        int discIndex =
-            collectibleManager.GetDiscIndexContainingZone(
+        ProgressionDiscDefinition playerDisc =
+            collectibleManager.GetDiscContainingZone(
                 currentPlayerZoneId
             );
 
-        if (discIndex < 0)
+        if (playerDisc == null)
         {
+            selectedDiscIndex = 0;
+            UpdateTargetStackPosition();
             return;
         }
 
-        selectedDiscIndex =
-            Mathf.Clamp(
-                discIndex,
-                0,
-                discObjects.Length - 1
-            );
+        int discObjectIndex =
+            FindDiscObjectIndex(playerDisc.DiscId);
+
+        if (discObjectIndex < 0)
+        {
+            selectedDiscIndex = 0;
+            UpdateTargetStackPosition();
+            return;
+        }
+
+        selectedDiscIndex = discObjectIndex;
 
         int zoneIndex =
             GetVisibleZoneIndex(
-                selectedDiscIndex,
+                playerDisc,
                 currentPlayerZoneId
             );
 
-        if (
-            selectedDiscIndex >= 0 &&
-            selectedDiscIndex < discObjects.Length &&
-            discObjects[selectedDiscIndex] != null &&
-            zoneIndex >= 0
-        )
+        if (zoneIndex >= 0)
         {
             discObjects[selectedDiscIndex]
-                .SetZone(zoneIndex);
+                .SetSection(zoneIndex);
         }
 
         UpdateTargetStackPosition();
     }
 
+    private int FindDiscObjectIndex(string discId)
+    {
+        for (int i = 0; i < discObjects.Length; i++)
+        {
+            if (
+                discObjects[i] != null &&
+                discObjects[i].DiscId == discId
+            )
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     private int GetVisibleZoneIndex(
-        int discIndex,
+        ProgressionDiscDefinition disc,
         string zoneId
     )
     {
-        if (
-            collectibleManager == null ||
-            discIndex < 0 ||
-            discIndex >= collectibleManager.Discs.Count
-        )
+        if (disc == null)
         {
             return -1;
         }
 
-        ProgressionDiscDefinition disc =
-            collectibleManager.Discs[discIndex];
-
         int visibleIndex = 0;
 
-        for (
-            int i = 0;
-            i < disc.Zones.Count;
-            i++
-        )
+        for (int i = 0; i < disc.Zones.Count; i++)
         {
             ZoneProgressDefinition zone =
                 disc.Zones[i];
@@ -233,7 +232,7 @@ public class PauseMapController : MonoBehaviour
         return -1;
     }
 
-    private void RotateLeft()
+    private void RotateSelectedDiscLeft()
     {
         if (!HasSelectedDisc())
         {
@@ -244,7 +243,7 @@ public class PauseMapController : MonoBehaviour
             .RotateLeft();
     }
 
-    private void RotateRight()
+    private void RotateSelectedDiscRight()
     {
         if (!HasSelectedDisc())
         {
@@ -255,8 +254,16 @@ public class PauseMapController : MonoBehaviour
             .RotateRight();
     }
 
-    private void MoveDiscUp()
+    private void SelectPreviousDisc()
     {
+        if (
+            discObjects == null ||
+            discObjects.Length == 0
+        )
+        {
+            return;
+        }
+
         selectedDiscIndex--;
 
         if (selectedDiscIndex < 0)
@@ -268,14 +275,19 @@ public class PauseMapController : MonoBehaviour
         UpdateTargetStackPosition();
     }
 
-    private void MoveDiscDown()
+    private void SelectNextDisc()
     {
+        if (
+            discObjects == null ||
+            discObjects.Length == 0
+        )
+        {
+            return;
+        }
+
         selectedDiscIndex++;
 
-        if (
-            selectedDiscIndex >=
-            discObjects.Length
-        )
+        if (selectedDiscIndex >= discObjects.Length)
         {
             selectedDiscIndex = 0;
         }
