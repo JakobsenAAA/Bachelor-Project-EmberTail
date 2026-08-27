@@ -2,8 +2,12 @@ using UnityEngine;
 
 public class CollectiblePickup : MonoBehaviour
 {
+    [Header("Collectible")]
+    [SerializeField] private string zoneId;
     [SerializeField] private CollectibleType collectibleType;
     [SerializeField] private int amount = 1;
+
+    [Header("Feedback")]
     [SerializeField] private GameObject collectEffect;
 
     private bool collected;
@@ -40,6 +44,7 @@ public class CollectiblePickup : MonoBehaviour
         collected = true;
 
         CollectibleManager.Instance.AddCollectible(
+            zoneId,
             collectibleType,
             amount
         );

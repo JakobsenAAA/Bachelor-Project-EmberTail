@@ -3,65 +3,68 @@ using UnityEngine;
 
 public class PlayerCollectibleUI : MonoBehaviour
 {
+    [Header("Zone")]
+    [SerializeField] private string zoneId = "zone1";
+
+    [Header("UI")]
     [SerializeField] private TextMeshProUGUI collectible1Text;
     [SerializeField] private TextMeshProUGUI collectible2Text;
     [SerializeField] private TextMeshProUGUI collectible3Text;
 
     private CollectibleManager collectibleManager;
+    private bool subscribed;
 
     private void Start()
     {
-        FindCollectibleManager();
-        RegisterEvents();
+        ConnectToManager();
         UpdateUI();
     }
 
     private void OnEnable()
     {
-        FindCollectibleManager();
-        RegisterEvents();
-        UpdateUI();
+        ConnectToManager();
     }
 
     private void OnDisable()
     {
-        UnregisterEvents();
+        Unsubscribe();
     }
 
-    private void FindCollectibleManager()
+    private void ConnectToManager()
     {
-        if (collectibleManager != null)
+        if (collectibleManager == null)
         {
-            return;
+            collectibleManager = CollectibleManager.Instance;
         }
-
-        collectibleManager = CollectibleManager.Instance;
 
         if (collectibleManager == null)
         {
             collectibleManager = FindFirstObjectByType<CollectibleManager>();
         }
-    }
 
-    private void RegisterEvents()
-    {
         if (collectibleManager == null)
         {
             return;
         }
 
-        collectibleManager.OnCollectiblesChanged.RemoveListener(UpdateUI);
-        collectibleManager.OnCollectiblesChanged.AddListener(UpdateUI);
+        if (!subscribed)
+        {
+            collectibleManager.OnCollectiblesChanged.AddListener(UpdateUI);
+            subscribed = true;
+        }
+
+        UpdateUI();
     }
 
-    private void UnregisterEvents()
+    private void Unsubscribe()
     {
-        if (collectibleManager == null)
+        if (collectibleManager == null || !subscribed)
         {
             return;
         }
 
         collectibleManager.OnCollectiblesChanged.RemoveListener(UpdateUI);
+        subscribed = false;
     }
 
     private void UpdateUI()
@@ -71,28 +74,35 @@ public class PlayerCollectibleUI : MonoBehaviour
             return;
         }
 
-        if (collectible1Text != null)
+        UpdateCollectibleText(
+            collectible1Text,
+            CollectibleType.Collectible1
+        );
+
+        UpdateCollectibleText(
+            collectible2Text,
+            CollectibleType.Collectible2
+        );
+
+        UpdateCollectibleText(
+            collectible3Text,
+            CollectibleType.Collectible3
+        );
+    }
+
+    private void UpdateCollectibleText(
+        TextMeshProUGUI text,
+        CollectibleType type
+    )
+    {
+        if (text == null)
         {
-            collectible1Text.text =
-                collectibleManager.Collectible1Amount +
-                " / " +
-                collectibleManager.Collectible1Maximum;
+            return;
         }
 
-        if (collectible2Text != null)
-        {
-            collectible2Text.text =
-                collectibleManager.Collectible2Amount +
-                " / " +
-                collectibleManager.Collectible2Maximum;
-        }
+        int collected = collectibleManager.GetCollected(zoneId, type);
+        int total = collectibleManager.GetTotal(zoneId, type);
 
-        if (collectible3Text != null)
-        {
-            collectible3Text.text =
-                collectibleManager.Collectible3Amount +
-                " / " +
-                collectibleManager.Collectible3Maximum;
-        }
+        text.text = collected + " / " + total;
     }
 }
