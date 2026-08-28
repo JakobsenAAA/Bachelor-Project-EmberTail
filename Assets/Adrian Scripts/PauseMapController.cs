@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 public class PauseMapController : MonoBehaviour
@@ -17,6 +18,8 @@ public class PauseMapController : MonoBehaviour
 
     [Header("Current Player Location")]
     [SerializeField] private string currentPlayerZoneId = "zone1";
+
+    public UnityEvent OnSelectionChanged;
 
     private int selectedDiscIndex;
     private Vector3 stackStartPosition;
@@ -106,25 +109,7 @@ public class PauseMapController : MonoBehaviour
 
             if (definition != null)
             {
-                visibleZoneCount = 0;
-
-                for (int zoneIndex = 0;
-                     zoneIndex < definition.Zones.Count;
-                     zoneIndex++)
-                {
-                    ZoneProgressDefinition zone =
-                        definition.Zones[zoneIndex];
-
-                    if (zone != null && zone.ShowInProgression)
-                    {
-                        visibleZoneCount++;
-                    }
-                }
-
-                visibleZoneCount = Mathf.Max(
-                    1,
-                    visibleZoneCount
-                );
+                visibleZoneCount = GetVisibleZoneCount(definition);
             }
 
             discObject.Initialize(
@@ -150,6 +135,7 @@ public class PauseMapController : MonoBehaviour
         {
             selectedDiscIndex = 0;
             UpdateTargetStackPosition();
+            NotifySelectionChanged();
             return;
         }
 
@@ -160,6 +146,7 @@ public class PauseMapController : MonoBehaviour
         {
             selectedDiscIndex = 0;
             UpdateTargetStackPosition();
+            NotifySelectionChanged();
             return;
         }
 
@@ -171,13 +158,85 @@ public class PauseMapController : MonoBehaviour
                 currentPlayerZoneId
             );
 
-        if (zoneIndex >= 0)
+        if (
+            zoneIndex >= 0 &&
+            discObjects[selectedDiscIndex] != null
+        )
         {
             discObjects[selectedDiscIndex]
                 .SetSection(zoneIndex);
         }
 
         UpdateTargetStackPosition();
+        NotifySelectionChanged();
+    }
+
+    public ProgressionDiscDefinition GetSelectedDiscDefinition()
+    {
+        if (
+            collectibleManager == null ||
+            discObjects == null ||
+            selectedDiscIndex < 0 ||
+            selectedDiscIndex >= discObjects.Length ||
+            discObjects[selectedDiscIndex] == null
+        )
+        {
+            return null;
+        }
+
+        return collectibleManager.GetDisc(
+            discObjects[selectedDiscIndex].DiscId
+        );
+    }
+
+    public ZoneProgressDefinition GetSelectedZoneDefinition()
+    {
+        ProgressionDiscDefinition disc =
+            GetSelectedDiscDefinition();
+
+        if (disc == null)
+        {
+            return null;
+        }
+
+        if (
+            discObjects == null ||
+            selectedDiscIndex < 0 ||
+            selectedDiscIndex >= discObjects.Length ||
+            discObjects[selectedDiscIndex] == null
+        )
+        {
+            return null;
+        }
+
+        int visibleSectionIndex =
+            discObjects[selectedDiscIndex]
+                .CurrentSectionIndex;
+
+        int currentVisibleIndex = 0;
+
+        for (int i = 0; i < disc.Zones.Count; i++)
+        {
+            ZoneProgressDefinition zone =
+                disc.Zones[i];
+
+            if (
+                zone == null ||
+                !zone.ShowInProgression
+            )
+            {
+                continue;
+            }
+
+            if (currentVisibleIndex == visibleSectionIndex)
+            {
+                return zone;
+            }
+
+            currentVisibleIndex++;
+        }
+
+        return null;
     }
 
     private int FindDiscObjectIndex(string discId)
@@ -232,6 +291,29 @@ public class PauseMapController : MonoBehaviour
         return -1;
     }
 
+    private int GetVisibleZoneCount(
+        ProgressionDiscDefinition disc
+    )
+    {
+        int count = 0;
+
+        for (int i = 0; i < disc.Zones.Count; i++)
+        {
+            ZoneProgressDefinition zone =
+                disc.Zones[i];
+
+            if (
+                zone != null &&
+                zone.ShowInProgression
+            )
+            {
+                count++;
+            }
+        }
+
+        return Mathf.Max(1, count);
+    }
+
     private void RotateSelectedDiscLeft()
     {
         if (!HasSelectedDisc())
@@ -241,6 +323,8 @@ public class PauseMapController : MonoBehaviour
 
         discObjects[selectedDiscIndex]
             .RotateLeft();
+
+        NotifySelectionChanged();
     }
 
     private void RotateSelectedDiscRight()
@@ -252,6 +336,8 @@ public class PauseMapController : MonoBehaviour
 
         discObjects[selectedDiscIndex]
             .RotateRight();
+
+        NotifySelectionChanged();
     }
 
     private void SelectPreviousDisc()
@@ -273,6 +359,7 @@ public class PauseMapController : MonoBehaviour
         }
 
         UpdateTargetStackPosition();
+        NotifySelectionChanged();
     }
 
     private void SelectNextDisc()
@@ -293,6 +380,7 @@ public class PauseMapController : MonoBehaviour
         }
 
         UpdateTargetStackPosition();
+        NotifySelectionChanged();
     }
 
     private void UpdateTargetStackPosition()
@@ -332,5 +420,10 @@ public class PauseMapController : MonoBehaviour
             selectedDiscIndex >= 0 &&
             selectedDiscIndex < discObjects.Length &&
             discObjects[selectedDiscIndex] != null;
+    }
+
+    private void NotifySelectionChanged()
+    {
+        OnSelectionChanged.Invoke();
     }
 }
