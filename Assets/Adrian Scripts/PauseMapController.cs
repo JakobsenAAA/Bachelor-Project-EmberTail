@@ -134,23 +134,30 @@ public class PauseMapController : MonoBehaviour
         if (playerDisc == null)
         {
             selectedDiscIndex = 0;
+
             UpdateTargetStackPosition();
             NotifySelectionChanged();
+
             return;
         }
 
         int discObjectIndex =
-            FindDiscObjectIndex(playerDisc.DiscId);
+            FindDiscObjectIndex(
+                playerDisc.DiscId
+            );
 
         if (discObjectIndex < 0)
         {
             selectedDiscIndex = 0;
+
             UpdateTargetStackPosition();
             NotifySelectionChanged();
+
             return;
         }
 
-        selectedDiscIndex = discObjectIndex;
+        selectedDiscIndex =
+            discObjectIndex;
 
         int zoneIndex =
             GetVisibleZoneIndex(
@@ -228,7 +235,10 @@ public class PauseMapController : MonoBehaviour
                 continue;
             }
 
-            if (currentVisibleIndex == visibleSectionIndex)
+            if (
+                currentVisibleIndex ==
+                visibleSectionIndex
+            )
             {
                 return zone;
             }
@@ -239,7 +249,20 @@ public class PauseMapController : MonoBehaviour
         return null;
     }
 
-    private int FindDiscObjectIndex(string discId)
+    public bool IsSelectedDiscRotating()
+    {
+        if (!HasSelectedDisc())
+        {
+            return false;
+        }
+
+        return discObjects[selectedDiscIndex]
+            .IsRotating;
+    }
+
+    private int FindDiscObjectIndex(
+        string discId
+    )
     {
         for (int i = 0; i < discObjects.Length; i++)
         {
@@ -311,7 +334,10 @@ public class PauseMapController : MonoBehaviour
             }
         }
 
-        return Mathf.Max(1, count);
+        return Mathf.Max(
+            1,
+            count
+        );
     }
 
     private void RotateSelectedDiscLeft()
@@ -374,7 +400,10 @@ public class PauseMapController : MonoBehaviour
 
         selectedDiscIndex++;
 
-        if (selectedDiscIndex >= discObjects.Length)
+        if (
+            selectedDiscIndex >=
+            discObjects.Length
+        )
         {
             selectedDiscIndex = 0;
         }

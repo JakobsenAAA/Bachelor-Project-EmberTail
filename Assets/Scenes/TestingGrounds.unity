@@ -685,6 +685,43 @@ RectTransform:
   m_AnchoredPosition: {x: -150, y: -840}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &202780104
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 202780105}
+  m_Layer: 0
+  m_Name: GameplayHUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &202780105
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 202780104}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 502563848}
+  - {fileID: 2040762746}
+  m_Father: {fileID: 1849881488}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &211486348
 GameObject:
   m_ObjectHideFlags: 0
@@ -1640,10 +1677,10 @@ RectTransform:
   m_GameObject: {fileID: 304665210}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.981, y: 1.981, z: 1.981}
+  m_LocalScale: {x: 1.9809998, y: 1.9809998, z: 1.9809998}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 502563848}
+  m_Father: {fileID: 2040762746}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3745,6 +3782,7 @@ MonoBehaviour:
   discId: future1
   sectionCountOverride: 6
   rotationSpeed: 360
+  rotationFinishThreshold: 0.5
   reverseRotation: 0
 --- !u!1 &502563847
 GameObject:
@@ -3756,7 +3794,7 @@ GameObject:
   m_Component:
   - component: {fileID: 502563848}
   m_Layer: 0
-  m_Name: Health
+  m_Name: HealthArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3769,7 +3807,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 502563847}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3777,8 +3815,7 @@ RectTransform:
   - {fileID: 168511446}
   - {fileID: 1940667529}
   - {fileID: 352102970}
-  - {fileID: 304665213}
-  m_Father: {fileID: 1849881488}
+  m_Father: {fileID: 202780105}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7575,6 +7612,9 @@ MonoBehaviour:
   OnCindersChanged:
     m_PersistentCalls:
       m_Calls: []
+  OnCinderCollected:
+    m_PersistentCalls:
+      m_Calls: []
   OnPlayerDied:
     m_PersistentCalls:
       m_Calls: []
@@ -9280,6 +9320,7 @@ MonoBehaviour:
   discId: future2
   sectionCountOverride: 3
   rotationSpeed: 360
+  rotationFinishThreshold: 0.5
   reverseRotation: 0
 --- !u!1 &1437031790
 GameObject:
@@ -10322,7 +10363,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1600390267}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -10330,7 +10371,7 @@ RectTransform:
   - {fileID: 839074725}
   - {fileID: 1247079381}
   - {fileID: 211486349}
-  m_Father: {fileID: 1849881488}
+  m_Father: {fileID: 2040762746}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -10397,6 +10438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8319bac5eca01b49a58259ccc8d9883, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PauseManager
+  gameplayHUD: {fileID: 0}
   pauseMenu: {fileID: 690176810}
   playerController: {fileID: 1149413965}
   thirdPersonCamera: {fileID: 330585548}
@@ -12058,8 +12100,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 502563848}
-  - {fileID: 1600390268}
+  - {fileID: 202780105}
   - {fileID: 690176811}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -12229,6 +12270,7 @@ MonoBehaviour:
   discId: beta
   sectionCountOverride: 4
   rotationSpeed: 360
+  rotationFinishThreshold: 0.5
   reverseRotation: 0
 --- !u!1 &1927017495
 GameObject:
@@ -12512,6 +12554,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PauseProgressionUI
   pauseMapController: {fileID: 1553242529}
   collectibleManager: {fileID: 2101789940}
+  canvasGroup: {fileID: 0}
   discNameText: {fileID: 76139069}
   zoneNameText: {fileID: 1102050688}
   zoneDescriptionText: {fileID: 542399656}
@@ -12521,6 +12564,8 @@ MonoBehaviour:
   collectible3Text: {fileID: 1321859805}
   lockedContainer: {fileID: 444179550}
   lockedText: {fileID: 1344889529}
+  fadeOutDuration: 0.15
+  fadeInDuration: 0.25
 --- !u!4 &1984164777 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: df39c5b7ff27dd94489b190cc1745e26, type: 3}
@@ -12832,6 +12877,76 @@ Transform:
   m_Children: []
   m_Father: {fileID: 554258228}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2040762745
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2040762746}
+  - component: {fileID: 2040762747}
+  - component: {fileID: 2040762748}
+  m_Layer: 0
+  m_Name: TemporaryProgressHUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2040762746
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040762745}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1600390268}
+  - {fileID: 304665213}
+  m_Father: {fileID: 202780105}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2040762747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040762745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d9a84aca31531845a8ee6401ebdb21c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameplayProgressUIFader
+  canvasGroup: {fileID: 2040762748}
+  playerHealth: {fileID: 1149413971}
+  collectibleManager: {fileID: 2101789940}
+  visibleDuration: 4
+  fadeInDuration: 0.2
+  fadeOutDuration: 0.5
+  visibleOnStart: 1
+--- !u!225 &2040762748
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040762745}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2061064662
 GameObject:
   m_ObjectHideFlags: 0

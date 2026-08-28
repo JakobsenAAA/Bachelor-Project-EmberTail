@@ -17,6 +17,7 @@ public class PlayerHealth : MonoBehaviour
 
     public UnityEvent OnHealthChanged;
     public UnityEvent OnCindersChanged;
+    public UnityEvent OnCinderCollected;
     public UnityEvent OnPlayerDied;
 
     private int currentHitPoints;
@@ -36,7 +37,12 @@ public class PlayerHealth : MonoBehaviour
             damageKnockback = GetComponent<PlayerDamageKnockback>();
         }
 
-        currentHitPoints = Mathf.Clamp(startingHitPoints, 1, maxHitPoints);
+        currentHitPoints = Mathf.Clamp(
+            startingHitPoints,
+            1,
+            maxHitPoints
+        );
+
         currentCinders = 0;
     }
 
@@ -48,10 +54,16 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        TakeDamage(damage, transform.position);
+        TakeDamage(
+            damage,
+            transform.position
+        );
     }
 
-    public void TakeDamage(int damage, Vector3 damageSourcePosition)
+    public void TakeDamage(
+        int damage,
+        Vector3 damageSourcePosition
+    )
     {
         if (Time.time < invulnerableUntilTime)
         {
@@ -69,12 +81,22 @@ public class PlayerHealth : MonoBehaviour
         }
 
         lastDamageTime = Time.time;
-        currentHitPoints -= damage;
-        currentHitPoints = Mathf.Max(currentHitPoints, 0);
 
-        if (damageKnockback != null && currentHitPoints > 0)
+        currentHitPoints -= damage;
+
+        currentHitPoints = Mathf.Max(
+            currentHitPoints,
+            0
+        );
+
+        if (
+            damageKnockback != null &&
+            currentHitPoints > 0
+        )
         {
-            damageKnockback.KnockbackFrom(damageSourcePosition);
+            damageKnockback.KnockbackFrom(
+                damageSourcePosition
+            );
         }
 
         OnHealthChanged.Invoke();
@@ -92,18 +114,29 @@ public class PlayerHealth : MonoBehaviour
             return;
         }
 
+        OnCinderCollected.Invoke();
+
         currentCinders += amount;
 
-        while (currentCinders >= cindersNeededForHitPoint && currentHitPoints < maxHitPoints)
+        while (
+            currentCinders >= cindersNeededForHitPoint &&
+            currentHitPoints < maxHitPoints
+        )
         {
-            currentCinders -= cindersNeededForHitPoint;
+            currentCinders -=
+                cindersNeededForHitPoint;
+
             currentHitPoints++;
+
             OnHealthChanged.Invoke();
         }
 
         if (currentHitPoints >= maxHitPoints)
         {
-            currentCinders = Mathf.Min(currentCinders, cindersNeededForHitPoint);
+            currentCinders = Mathf.Min(
+                currentCinders,
+                cindersNeededForHitPoint
+            );
         }
 
         OnCindersChanged.Invoke();
@@ -113,8 +146,12 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHitPoints = maxHitPoints;
         currentCinders = 0;
+
         lastDamageTime = Time.time;
-        invulnerableUntilTime = Time.time + respawnInvulnerabilityTime;
+
+        invulnerableUntilTime =
+            Time.time +
+            respawnInvulnerabilityTime;
 
         OnHealthChanged.Invoke();
         OnCindersChanged.Invoke();

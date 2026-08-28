@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -6,6 +7,7 @@ public class PauseProgressionUI : MonoBehaviour
     [Header("References")]
     [SerializeField] private PauseMapController pauseMapController;
     [SerializeField] private CollectibleManager collectibleManager;
+    [SerializeField] private CanvasGroup canvasGroup;
 
     [Header("Zone Information")]
     [SerializeField] private TextMeshProUGUI discNameText;
@@ -22,8 +24,20 @@ public class PauseProgressionUI : MonoBehaviour
     [SerializeField] private GameObject lockedContainer;
     [SerializeField] private TextMeshProUGUI lockedText;
 
+    [Header("Transition")]
+    [SerializeField] private float fadeOutDuration = 0.15f;
+    [SerializeField] private float fadeInDuration = 0.25f;
+
+    private Coroutine transitionCoroutine;
+
     private void Awake()
     {
+        if (canvasGroup == null)
+        {
+            canvasGroup =
+                GetComponent<CanvasGroup>();
+        }
+
         if (collectibleManager == null)
         {
             collectibleManager =
@@ -37,17 +51,21 @@ public class PauseProgressionUI : MonoBehaviour
         {
             pauseMapController
                 .OnSelectionChanged
-                .AddListener(UpdateUI);
+                .AddListener(
+                    BeginTransition
+                );
         }
 
         if (collectibleManager != null)
         {
             collectibleManager
                 .OnCollectiblesChanged
-                .AddListener(UpdateUI);
+                .AddListener(
+                    UpdateUIImmediately
+                );
         }
 
-        UpdateUI();
+        UpdateUIImmediately();
     }
 
     private void OnDisable()
@@ -56,18 +74,82 @@ public class PauseProgressionUI : MonoBehaviour
         {
             pauseMapController
                 .OnSelectionChanged
-                .RemoveListener(UpdateUI);
+                .RemoveListener(
+                    BeginTransition
+                );
         }
 
         if (collectibleManager != null)
         {
             collectibleManager
                 .OnCollectiblesChanged
-                .RemoveListener(UpdateUI);
+                .RemoveListener(
+                    UpdateUIImmediately
+                );
+        }
+
+        if (transitionCoroutine != null)
+        {
+            StopCoroutine(
+                transitionCoroutine
+            );
+
+            transitionCoroutine = null;
         }
     }
 
-    public void UpdateUI()
+    private void BeginTransition()
+    {
+        if (transitionCoroutine != null)
+        {
+            StopCoroutine(
+                transitionCoroutine
+            );
+        }
+
+        transitionCoroutine =
+            StartCoroutine(
+                TransitionRoutine()
+            );
+    }
+
+    private IEnumerator TransitionRoutine()
+    {
+        yield return FadeTo(
+            0f,
+            fadeOutDuration
+        );
+
+        while (
+            pauseMapController != null &&
+            pauseMapController
+                .IsSelectedDiscRotating()
+        )
+        {
+            yield return null;
+        }
+
+        UpdateUIContent();
+
+        yield return FadeTo(
+            1f,
+            fadeInDuration
+        );
+
+        transitionCoroutine = null;
+    }
+
+    private void UpdateUIImmediately()
+    {
+        UpdateUIContent();
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+        }
+    }
+
+    private void UpdateUIContent()
     {
         if (
             pauseMapController == null ||
@@ -106,7 +188,9 @@ public class PauseProgressionUI : MonoBehaviour
         if (locked)
         {
             ShowLockedState(
-                string.IsNullOrWhiteSpace(zone.DisplayName)
+                string.IsNullOrWhiteSpace(
+                    zone.DisplayName
+                )
                     ? "???"
                     : zone.DisplayName
             );
@@ -225,5 +309,52 @@ public class PauseProgressionUI : MonoBehaviour
             collected +
             " / " +
             total;
+    }
+
+    private IEnumerator FadeTo(
+        float targetAlpha,
+        float duration
+    )
+    {
+        if (canvasGroup == null)
+        {
+            yield break;
+        }
+
+        float startingAlpha =
+            canvasGroup.alpha;
+
+        if (duration <= 0f)
+        {
+            canvasGroup.alpha =
+                targetAlpha;
+
+            yield break;
+        }
+
+        float timer = 0f;
+
+        while (timer < duration)
+        {
+            timer +=
+                Time.unscaledDeltaTime;
+
+            float progress =
+                Mathf.Clamp01(
+                    timer / duration
+                );
+
+            canvasGroup.alpha =
+                Mathf.Lerp(
+                    startingAlpha,
+                    targetAlpha,
+                    progress
+                );
+
+            yield return null;
+        }
+
+        canvasGroup.alpha =
+            targetAlpha;
     }
 }

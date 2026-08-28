@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public class PauseManager : MonoBehaviour
 {
     [Header("UI")]
+    [SerializeField] private GameObject gameplayHUD;
     [SerializeField] private GameObject pauseMenu;
 
     [Header("Gameplay")]
@@ -30,7 +31,8 @@ public class PauseManager : MonoBehaviour
         }
 
         if (
-            Keyboard.current.escapeKey
+            Keyboard.current
+                .escapeKey
                 .wasPressedThisFrame
         )
         {
@@ -73,6 +75,11 @@ public class PauseManager : MonoBehaviour
                 .SetCameraInputEnabled(false);
         }
 
+        if (gameplayHUD != null)
+        {
+            gameplayHUD.SetActive(false);
+        }
+
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(true);
@@ -108,6 +115,11 @@ public class PauseManager : MonoBehaviour
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(false);
+        }
+
+        if (gameplayHUD != null)
+        {
+            gameplayHUD.SetActive(true);
         }
 
         ApplyCursorState();

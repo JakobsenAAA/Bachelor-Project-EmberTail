@@ -10,6 +10,7 @@ public class PauseMapDisc : MonoBehaviour
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 360f;
+    [SerializeField] private float rotationFinishThreshold = 0.5f;
     [SerializeField] private bool reverseRotation;
 
     private int currentSectionIndex;
@@ -20,45 +21,83 @@ public class PauseMapDisc : MonoBehaviour
     public int CurrentSectionIndex => currentSectionIndex;
     public int SectionCount => sectionCount;
 
-    public void Initialize(int startingSectionIndex, int progressionZoneCount)
+    public bool IsRotating
+    {
+        get
+        {
+            float difference =
+                Mathf.Abs(
+                    Mathf.DeltaAngle(
+                        transform.localEulerAngles.y,
+                        targetRotationY
+                    )
+                );
+
+            return difference >
+                rotationFinishThreshold;
+        }
+    }
+
+    public void Initialize(
+        int startingSectionIndex,
+        int progressionZoneCount
+    )
     {
         if (sectionCountOverride > 0)
         {
-            sectionCount = sectionCountOverride;
+            sectionCount =
+                sectionCountOverride;
         }
         else
         {
-            sectionCount = Mathf.Max(1, progressionZoneCount);
+            sectionCount =
+                Mathf.Max(
+                    1,
+                    progressionZoneCount
+                );
         }
 
-        currentSectionIndex = Mathf.Clamp(
-            startingSectionIndex,
-            0,
-            sectionCount - 1
-        );
+        currentSectionIndex =
+            Mathf.Clamp(
+                startingSectionIndex,
+                0,
+                sectionCount - 1
+            );
 
-        targetRotationY = CalculateRotation(currentSectionIndex);
+        targetRotationY =
+            CalculateRotation(
+                currentSectionIndex
+            );
 
-        Vector3 euler = transform.localEulerAngles;
-        euler.y = targetRotationY;
-        transform.localEulerAngles = euler;
+        Vector3 euler =
+            transform.localEulerAngles;
+
+        euler.y =
+            targetRotationY;
+
+        transform.localEulerAngles =
+            euler;
     }
 
     private void Update()
     {
-        Vector3 euler = transform.localEulerAngles;
+        Vector3 euler =
+            transform.localEulerAngles;
 
-        float newY = Mathf.MoveTowardsAngle(
-            euler.y,
-            targetRotationY,
-            rotationSpeed * Time.unscaledDeltaTime
-        );
+        float newY =
+            Mathf.MoveTowardsAngle(
+                euler.y,
+                targetRotationY,
+                rotationSpeed *
+                Time.unscaledDeltaTime
+            );
 
-        transform.localEulerAngles = new Vector3(
-            euler.x,
-            newY,
-            euler.z
-        );
+        transform.localEulerAngles =
+            new Vector3(
+                euler.x,
+                newY,
+                euler.z
+            );
     }
 
     public void RotateLeft()
@@ -72,10 +111,14 @@ public class PauseMapDisc : MonoBehaviour
 
         if (currentSectionIndex < 0)
         {
-            currentSectionIndex = sectionCount - 1;
+            currentSectionIndex =
+                sectionCount - 1;
         }
 
-        targetRotationY = CalculateRotation(currentSectionIndex);
+        targetRotationY =
+            CalculateRotation(
+                currentSectionIndex
+            );
     }
 
     public void RotateRight()
@@ -87,35 +130,56 @@ public class PauseMapDisc : MonoBehaviour
 
         currentSectionIndex++;
 
-        if (currentSectionIndex >= sectionCount)
+        if (
+            currentSectionIndex >=
+            sectionCount
+        )
         {
             currentSectionIndex = 0;
         }
 
-        targetRotationY = CalculateRotation(currentSectionIndex);
+        targetRotationY =
+            CalculateRotation(
+                currentSectionIndex
+            );
     }
 
-    public void SetSection(int sectionIndex)
+    public void SetSection(
+        int sectionIndex
+    )
     {
         if (sectionCount <= 0)
         {
             return;
         }
 
-        currentSectionIndex = Mathf.Clamp(
-            sectionIndex,
-            0,
-            sectionCount - 1
-        );
+        currentSectionIndex =
+            Mathf.Clamp(
+                sectionIndex,
+                0,
+                sectionCount - 1
+            );
 
-        targetRotationY = CalculateRotation(currentSectionIndex);
+        targetRotationY =
+            CalculateRotation(
+                currentSectionIndex
+            );
     }
 
-    private float CalculateRotation(int sectionIndex)
+    private float CalculateRotation(
+        int sectionIndex
+    )
     {
-        float anglePerSection = 360f / sectionCount;
-        float direction = reverseRotation ? 1f : -1f;
+        float anglePerSection =
+            360f / sectionCount;
 
-        return direction * anglePerSection * sectionIndex;
+        float direction =
+            reverseRotation
+                ? 1f
+                : -1f;
+
+        return direction *
+               anglePerSection *
+               sectionIndex;
     }
 }
