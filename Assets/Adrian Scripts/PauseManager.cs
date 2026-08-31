@@ -15,6 +15,9 @@ public class PauseManager : MonoBehaviour
     [Header("Pause Map")]
     [SerializeField] private PauseMapController pauseMapController;
 
+    [Header("Save Feedback")]
+    [SerializeField] private SaveNotificationUI saveNotificationUI;
+
     [Header("Scenes")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
@@ -140,8 +143,18 @@ public class PauseManager : MonoBehaviour
             return;
         }
 
-        SaveGameManager.Instance
-            .SaveCurrentGame();
+        bool saveSuccessful =
+            SaveGameManager.Instance
+                .SaveCurrentGame();
+
+        if (
+            saveSuccessful &&
+            saveNotificationUI != null
+        )
+        {
+            saveNotificationUI
+                .ShowMessage("GAME SAVED");
+        }
     }
 
     public void LoadGame()
