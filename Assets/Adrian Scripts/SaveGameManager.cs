@@ -29,20 +29,24 @@ public class SaveGameManager : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);
 
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.sceneLoaded +=
+            OnSceneLoaded;
     }
 
     private void OnDestroy()
     {
         if (Instance == this)
         {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded -=
+                OnSceneLoaded;
         }
     }
 
     public bool HasSaveGame()
     {
-        return File.Exists(SavePath);
+        return File.Exists(
+            SavePath
+        );
     }
 
     public void SaveFromButton()
@@ -88,10 +92,12 @@ public class SaveGameManager : MonoBehaviour
             playerRespawn.CurrentZoneId;
 
         data.zoneProgress =
-            collectibleManager.CreateZoneSaveData();
+            collectibleManager
+                .CreateZoneSaveData();
 
         data.collectedPickupIds =
-            collectibleManager.CreateCollectedPickupSaveData();
+            collectibleManager
+                .CreateCollectedPickupSaveData();
 
         string json =
             JsonUtility.ToJson(
@@ -151,9 +157,19 @@ public class SaveGameManager : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        SceneManager.LoadScene(
-            pendingLoadData.sceneName
-        );
+        if (LoadingScreenManager.Instance != null)
+        {
+            LoadingScreenManager.Instance
+                .LoadScene(
+                    pendingLoadData.sceneName
+                );
+        }
+        else
+        {
+            SceneManager.LoadScene(
+                pendingLoadData.sceneName
+            );
+        }
 
         return true;
     }
@@ -164,7 +180,9 @@ public class SaveGameManager : MonoBehaviour
 
         if (File.Exists(SavePath))
         {
-            File.Delete(SavePath);
+            File.Delete(
+                SavePath
+            );
         }
     }
 

@@ -12,11 +12,18 @@ public class PlayerRespawn : MonoBehaviour
     [SerializeField] private PlayerHealth playerHealth;
     [SerializeField] private EnemyRespawnManager enemyRespawnManager;
 
+    [Header("Death Transition")]
+    [SerializeField] private bool useDeathTransition = true;
+    [SerializeField] private float deathFadeOutDuration = 0.75f;
+    [SerializeField] private float deathLoadingDuration = 1.5f;
+    [SerializeField] private float respawnFadeInDuration = 0.75f;
+
     private CharacterController characterController;
     private Vector3 currentRespawnPosition;
     private Quaternion currentRespawnRotation;
     private string currentCheckpointId;
     private string currentZoneId;
+    private bool deathTransitionActive;
 
     public string CurrentCheckpointId => currentCheckpointId;
     public string CurrentZoneId => currentZoneId;
@@ -47,7 +54,8 @@ public class PlayerRespawn : MonoBehaviour
                 startingRespawnPoint.rotation;
 
             RespawnPoint startingPoint =
-                startingRespawnPoint.GetComponent<RespawnPoint>();
+                startingRespawnPoint
+                    .GetComponent<RespawnPoint>();
 
             if (startingPoint != null)
             {
@@ -88,7 +96,9 @@ public class PlayerRespawn : MonoBehaviour
         {
             playerHealth
                 .OnPlayerDied
-                .AddListener(Respawn);
+                .AddListener(
+                    HandlePlayerDied
+                );
         }
     }
 
@@ -98,7 +108,9 @@ public class PlayerRespawn : MonoBehaviour
         {
             playerHealth
                 .OnPlayerDied
-                .RemoveListener(Respawn);
+                .RemoveListener(
+                    HandlePlayerDied
+                );
         }
     }
 
@@ -168,20 +180,57 @@ public class PlayerRespawn : MonoBehaviour
         return false;
     }
 
+    private void HandlePlayerDied()
+    {
+        if (deathTransitionActive)
+        {
+            return;
+        }
+
+        if (
+            useDeathTransition &&
+            LoadingScreenManager.Instance != null
+        )
+        {
+            deathTransitionActive = true;
+
+            LoadingScreenManager.Instance
+                .StartRespawnTransition(
+                    CompleteDeathRespawn,
+                    deathFadeOutDuration,
+                    deathLoadingDuration,
+                    respawnFadeInDuration
+                );
+
+            return;
+        }
+
+        Respawn();
+    }
+
+    private void CompleteDeathRespawn()
+    {
+        Respawn();
+        deathTransitionActive = false;
+    }
+
     public void Respawn()
     {
-        characterController.enabled = false;
+        characterController.enabled =
+            false;
 
         transform.SetPositionAndRotation(
             currentRespawnPosition,
             currentRespawnRotation
         );
 
-        characterController.enabled = true;
+        characterController.enabled =
+            true;
 
         if (playerHealth != null)
         {
-            playerHealth.RestoreFullHealth();
+            playerHealth
+                .RestoreFullHealth();
         }
 
         if (enemyRespawnManager != null)

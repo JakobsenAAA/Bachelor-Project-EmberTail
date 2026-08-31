@@ -31,9 +31,19 @@ public class MainMenuGameController : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        SceneManager.LoadScene(
-            gameplaySceneName
-        );
+        if (LoadingScreenManager.Instance != null)
+        {
+            LoadingScreenManager.Instance
+                .LoadScene(
+                    gameplaySceneName
+                );
+        }
+        else
+        {
+            SceneManager.LoadScene(
+                gameplaySceneName
+            );
+        }
     }
 
     public void LoadGame()

@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseManager : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private GameObject gameplayHUD;
     [SerializeField] private GameObject pauseMenu;
+    [SerializeField] private Button loadGameButton;
 
     [Header("Gameplay")]
     [SerializeField] private PlayerController playerController;
@@ -98,6 +100,7 @@ public class PauseManager : MonoBehaviour
                 .FocusPlayerLocation();
         }
 
+        RefreshLoadButton();
         ApplyCursorState();
     }
 
@@ -153,8 +156,12 @@ public class PauseManager : MonoBehaviour
         )
         {
             saveNotificationUI
-                .ShowMessage("GAME SAVED");
+                .ShowMessage(
+                    "GAME SAVED"
+                );
         }
+
+        RefreshLoadButton();
     }
 
     public void LoadGame()
@@ -181,9 +188,35 @@ public class PauseManager : MonoBehaviour
 
         Cursor.visible = true;
 
-        SceneManager.LoadScene(
-            mainMenuSceneName
-        );
+        if (LoadingScreenManager.Instance != null)
+        {
+            LoadingScreenManager.Instance
+                .LoadScene(
+                    mainMenuSceneName
+                );
+        }
+        else
+        {
+            SceneManager.LoadScene(
+                mainMenuSceneName
+            );
+        }
+    }
+
+    public void RefreshLoadButton()
+    {
+        if (loadGameButton == null)
+        {
+            return;
+        }
+
+        bool hasSave =
+            SaveGameManager.Instance != null &&
+            SaveGameManager.Instance
+                .HasSaveGame();
+
+        loadGameButton.interactable =
+            hasSave;
     }
 
     private void ApplyCursorState()
