@@ -1,7 +1,11 @@
+using System;
 using UnityEngine;
 
 public class CollectiblePickup : MonoBehaviour
 {
+    [Header("Identity")]
+    [SerializeField] private string pickupId;
+
     [Header("Collectible")]
     [SerializeField] private string zoneId;
     [SerializeField] private CollectibleType collectibleType;
@@ -12,6 +16,18 @@ public class CollectiblePickup : MonoBehaviour
 
     private bool collected;
 
+    private void Start()
+    {
+        if (
+            CollectibleManager.Instance != null &&
+            CollectibleManager.Instance.IsPickupCollected(pickupId)
+        )
+        {
+            collected = true;
+            gameObject.SetActive(false);
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (collected)
@@ -19,11 +35,13 @@ public class CollectiblePickup : MonoBehaviour
             return;
         }
 
-        PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+        PlayerHealth playerHealth =
+            other.GetComponent<PlayerHealth>();
 
         if (playerHealth == null)
         {
-            playerHealth = other.GetComponentInParent<PlayerHealth>();
+            playerHealth =
+                other.GetComponentInParent<PlayerHealth>();
         }
 
         if (playerHealth == null)
@@ -41,13 +59,20 @@ public class CollectiblePickup : MonoBehaviour
             return;
         }
 
-        collected = true;
+        bool successfullyCollected =
+            CollectibleManager.Instance.CollectPickup(
+                pickupId,
+                zoneId,
+                collectibleType,
+                amount
+            );
 
-        CollectibleManager.Instance.AddCollectible(
-            zoneId,
-            collectibleType,
-            amount
-        );
+        if (!successfullyCollected)
+        {
+            return;
+        }
+
+        collected = true;
 
         if (collectEffect != null)
         {
@@ -59,5 +84,12 @@ public class CollectiblePickup : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    [ContextMenu("Generate New Pickup ID")]
+    private void GenerateNewPickupId()
+    {
+        pickupId =
+            Guid.NewGuid().ToString();
     }
 }

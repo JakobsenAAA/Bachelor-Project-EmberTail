@@ -15,6 +15,9 @@ public class CollectibleManager : MonoBehaviour
     private readonly Dictionary<string, ZoneRuntimeProgress> zoneProgress =
         new Dictionary<string, ZoneRuntimeProgress>();
 
+    private readonly HashSet<string> collectedPickupIds =
+        new HashSet<string>();
+
     public IReadOnlyList<ProgressionDiscDefinition> Discs => discs;
 
     private void Awake()
@@ -60,20 +63,13 @@ public class CollectibleManager : MonoBehaviour
 
                 if (string.IsNullOrWhiteSpace(zone.ZoneId))
                 {
-                    Debug.LogError(
-                        "A zone in CollectibleManager has no Zone ID."
-                    );
-
+                    Debug.LogError("A zone in CollectibleManager has no Zone ID.");
                     continue;
                 }
 
                 if (zoneProgress.ContainsKey(zone.ZoneId))
                 {
-                    Debug.LogError(
-                        "Duplicate Zone ID found: " +
-                        zone.ZoneId
-                    );
-
+                    Debug.LogError("Duplicate Zone ID found: " + zone.ZoneId);
                     continue;
                 }
 
@@ -83,6 +79,46 @@ public class CollectibleManager : MonoBehaviour
                 );
             }
         }
+    }
+
+    public bool CollectPickup(
+        string pickupId,
+        string zoneId,
+        CollectibleType type,
+        int amount
+    )
+    {
+        if (string.IsNullOrWhiteSpace(pickupId))
+        {
+            Debug.LogWarning("CollectiblePickup has no unique Pickup ID.");
+            return false;
+        }
+
+        if (collectedPickupIds.Contains(pickupId))
+        {
+            return false;
+        }
+
+        if (amount <= 0)
+        {
+            return false;
+        }
+
+        if (!zoneProgress.ContainsKey(zoneId))
+        {
+            Debug.LogWarning("Unknown Zone ID: " + zoneId);
+            return false;
+        }
+
+        collectedPickupIds.Add(pickupId);
+
+        AddCollectible(
+            zoneId,
+            type,
+            amount
+        );
+
+        return true;
     }
 
     public void AddCollectible(
@@ -101,11 +137,7 @@ public class CollectibleManager : MonoBehaviour
                 out ZoneRuntimeProgress progress
             ))
         {
-            Debug.LogWarning(
-                "Unknown Zone ID: " +
-                zoneId
-            );
-
+            Debug.LogWarning("Unknown Zone ID: " + zoneId);
             return;
         }
 
@@ -117,40 +149,41 @@ public class CollectibleManager : MonoBehaviour
         switch (type)
         {
             case CollectibleType.Collectible1:
-
-                progress.collectible1 =
-                    Mathf.Clamp(
-                        progress.collectible1 + amount,
-                        0,
-                        total
-                    );
-
+                progress.collectible1 = Mathf.Clamp(
+                    progress.collectible1 + amount,
+                    0,
+                    total
+                );
                 break;
 
             case CollectibleType.Collectible2:
-
-                progress.collectible2 =
-                    Mathf.Clamp(
-                        progress.collectible2 + amount,
-                        0,
-                        total
-                    );
-
+                progress.collectible2 = Mathf.Clamp(
+                    progress.collectible2 + amount,
+                    0,
+                    total
+                );
                 break;
 
             case CollectibleType.Collectible3:
-
-                progress.collectible3 =
-                    Mathf.Clamp(
-                        progress.collectible3 + amount,
-                        0,
-                        total
-                    );
-
+                progress.collectible3 = Mathf.Clamp(
+                    progress.collectible3 + amount,
+                    0,
+                    total
+                );
                 break;
         }
 
         OnCollectiblesChanged.Invoke();
+    }
+
+    public bool IsPickupCollected(string pickupId)
+    {
+        if (string.IsNullOrWhiteSpace(pickupId))
+        {
+            return false;
+        }
+
+        return collectedPickupIds.Contains(pickupId);
     }
 
     public int GetCollected(
@@ -389,7 +422,122 @@ public class CollectibleManager : MonoBehaviour
         return null;
     }
 
+    public List<ZoneCollectibleSaveData> CreateZoneSaveData()
+    {
+        List<ZoneCollectibleSaveData> saveData =
+            new List<ZoneCollectibleSaveData>();
+
+        foreach (
+            KeyValuePair<string, ZoneRuntimeProgress> entry
+            in zoneProgress
+        )
+        {
+            ZoneCollectibleSaveData zoneData =
+                new ZoneCollectibleSaveData();
+
+            zoneData.zoneId = entry.Key;
+            zoneData.collectible1 = entry.Value.collectible1;
+            zoneData.collectible2 = entry.Value.collectible2;
+            zoneData.collectible3 = entry.Value.collectible3;
+
+            saveData.Add(zoneData);
+        }
+
+        return saveData;
+    }
+
+    public List<string> CreateCollectedPickupSaveData()
+    {
+        return new List<string>(
+            collectedPickupIds
+        );
+    }
+
+    public void RestoreSaveData(
+        List<ZoneCollectibleSaveData> savedZones,
+        List<string> savedPickupIds
+    )
+    {
+        ResetProgressInternal();
+
+        if (savedZones != null)
+        {
+            for (int i = 0; i < savedZones.Count; i++)
+            {
+                ZoneCollectibleSaveData savedZone =
+                    savedZones[i];
+
+                if (
+                    savedZone == null ||
+                    !zoneProgress.TryGetValue(
+                        savedZone.zoneId,
+                        out ZoneRuntimeProgress progress
+                    )
+                )
+                {
+                    continue;
+                }
+
+                progress.collectible1 =
+                    Mathf.Clamp(
+                        savedZone.collectible1,
+                        0,
+                        GetTotal(
+                            savedZone.zoneId,
+                            CollectibleType.Collectible1
+                        )
+                    );
+
+                progress.collectible2 =
+                    Mathf.Clamp(
+                        savedZone.collectible2,
+                        0,
+                        GetTotal(
+                            savedZone.zoneId,
+                            CollectibleType.Collectible2
+                        )
+                    );
+
+                progress.collectible3 =
+                    Mathf.Clamp(
+                        savedZone.collectible3,
+                        0,
+                        GetTotal(
+                            savedZone.zoneId,
+                            CollectibleType.Collectible3
+                        )
+                    );
+            }
+        }
+
+        collectedPickupIds.Clear();
+
+        if (savedPickupIds != null)
+        {
+            for (int i = 0; i < savedPickupIds.Count; i++)
+            {
+                string pickupId =
+                    savedPickupIds[i];
+
+                if (!string.IsNullOrWhiteSpace(pickupId))
+                {
+                    collectedPickupIds.Add(pickupId);
+                }
+            }
+        }
+
+        OnCollectiblesChanged.Invoke();
+    }
+
     public void ResetProgress()
+    {
+        ResetProgressInternal();
+        collectedPickupIds.Clear();
+
+        OnCollectiblesChanged.Invoke();
+    }
+
+    private void ResetProgressInternal()
     {
         foreach (
             KeyValuePair<string, ZoneRuntimeProgress> entry
@@ -400,8 +548,6 @@ public class CollectibleManager : MonoBehaviour
             entry.Value.collectible2 = 0;
             entry.Value.collectible3 = 0;
         }
-
-        OnCollectiblesChanged.Invoke();
     }
 
     private class ZoneRuntimeProgress

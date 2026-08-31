@@ -1,19 +1,35 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenuGameController : MonoBehaviour
 {
     [Header("Scenes")]
     [SerializeField] private string gameplaySceneName = "Game";
 
-    [Header("New Game")]
-    [SerializeField] private bool clearPlayerPrefsSaveData = true;
+    [Header("UI")]
+    [SerializeField] private Button loadGameButton;
 
-    private const string SaveExistsKey = "SaveExists";
+    private void Start()
+    {
+        RefreshLoadButton();
+    }
 
     public void StartNewGame()
     {
-        ResetGameProgress();
+        if (SaveGameManager.Instance != null)
+        {
+            SaveGameManager.Instance
+                .DeleteSave();
+        }
+
+        if (CollectibleManager.Instance != null)
+        {
+            CollectibleManager.Instance
+                .ResetProgress();
+        }
+
+        Time.timeScale = 1f;
 
         SceneManager.LoadScene(
             gameplaySceneName
@@ -22,14 +38,13 @@ public class MainMenuGameController : MonoBehaviour
 
     public void LoadGame()
     {
-        if (!HasSaveGame())
+        if (SaveGameManager.Instance == null)
         {
             return;
         }
 
-        SceneManager.LoadScene(
-            gameplaySceneName
-        );
+        SaveGameManager.Instance
+            .LoadGame();
     }
 
     public void ExitGame()
@@ -43,37 +58,19 @@ public class MainMenuGameController : MonoBehaviour
 #endif
     }
 
-    public bool HasSaveGame()
+    public void RefreshLoadButton()
     {
-        return PlayerPrefs.GetInt(
-            SaveExistsKey,
-            0
-        ) == 1;
-    }
-
-    private void ResetGameProgress()
-    {
-        if (CollectibleManager.Instance != null)
+        if (loadGameButton == null)
         {
-            CollectibleManager.Instance
-                .ResetProgress();
+            return;
         }
 
-        if (clearPlayerPrefsSaveData)
-        {
-            PlayerPrefs.DeleteKey(
-                SaveExistsKey
-            );
+        bool hasSave =
+            SaveGameManager.Instance != null &&
+            SaveGameManager.Instance
+                .HasSaveGame();
 
-            PlayerPrefs.DeleteKey(
-                "SavedScene"
-            );
-
-            PlayerPrefs.DeleteKey(
-                "SavedCheckpoint"
-            );
-
-            PlayerPrefs.Save();
-        }
+        loadGameButton.interactable =
+            hasSave;
     }
 }

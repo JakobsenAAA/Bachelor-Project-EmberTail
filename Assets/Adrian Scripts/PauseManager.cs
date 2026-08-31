@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class PauseManager : MonoBehaviour
 
     [Header("Pause Map")]
     [SerializeField] private PauseMapController pauseMapController;
+
+    [Header("Scenes")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     private bool isPaused;
 
@@ -123,6 +127,50 @@ public class PauseManager : MonoBehaviour
         }
 
         ApplyCursorState();
+    }
+
+    public void SaveGame()
+    {
+        if (SaveGameManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "SaveGameManager was not found."
+            );
+
+            return;
+        }
+
+        SaveGameManager.Instance
+            .SaveCurrentGame();
+    }
+
+    public void LoadGame()
+    {
+        if (SaveGameManager.Instance == null)
+        {
+            Debug.LogWarning(
+                "SaveGameManager was not found."
+            );
+
+            return;
+        }
+
+        SaveGameManager.Instance
+            .LoadGame();
+    }
+
+    public void ExitToMainMenu()
+    {
+        Time.timeScale = 1f;
+
+        Cursor.lockState =
+            CursorLockMode.None;
+
+        Cursor.visible = true;
+
+        SceneManager.LoadScene(
+            mainMenuSceneName
+        );
     }
 
     private void ApplyCursorState()

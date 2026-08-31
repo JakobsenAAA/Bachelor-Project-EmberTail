@@ -3,37 +3,82 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerRespawn : MonoBehaviour
 {
+    [Header("Starting Respawn")]
     [SerializeField] private Transform startingRespawnPoint;
+    [SerializeField] private string startingCheckpointId = "start";
+    [SerializeField] private string startingZoneId = "zone1";
+
+    [Header("References")]
     [SerializeField] private PlayerHealth playerHealth;
     [SerializeField] private EnemyRespawnManager enemyRespawnManager;
 
     private CharacterController characterController;
     private Vector3 currentRespawnPosition;
     private Quaternion currentRespawnRotation;
+    private string currentCheckpointId;
+    private string currentZoneId;
+
+    public string CurrentCheckpointId => currentCheckpointId;
+    public string CurrentZoneId => currentZoneId;
 
     private void Awake()
     {
-        characterController = GetComponent<CharacterController>();
+        characterController =
+            GetComponent<CharacterController>();
 
         if (playerHealth == null)
         {
-            playerHealth = GetComponent<PlayerHealth>();
+            playerHealth =
+                GetComponent<PlayerHealth>();
         }
 
         if (enemyRespawnManager == null)
         {
-            enemyRespawnManager = FindFirstObjectByType<EnemyRespawnManager>();
+            enemyRespawnManager =
+                FindFirstObjectByType<EnemyRespawnManager>();
         }
 
         if (startingRespawnPoint != null)
         {
-            currentRespawnPosition = startingRespawnPoint.position;
-            currentRespawnRotation = startingRespawnPoint.rotation;
+            currentRespawnPosition =
+                startingRespawnPoint.position;
+
+            currentRespawnRotation =
+                startingRespawnPoint.rotation;
+
+            RespawnPoint startingPoint =
+                startingRespawnPoint.GetComponent<RespawnPoint>();
+
+            if (startingPoint != null)
+            {
+                currentCheckpointId =
+                    startingPoint.CheckpointId;
+
+                currentZoneId =
+                    startingPoint.ZoneId;
+            }
+            else
+            {
+                currentCheckpointId =
+                    startingCheckpointId;
+
+                currentZoneId =
+                    startingZoneId;
+            }
         }
         else
         {
-            currentRespawnPosition = transform.position;
-            currentRespawnRotation = transform.rotation;
+            currentRespawnPosition =
+                transform.position;
+
+            currentRespawnRotation =
+                transform.rotation;
+
+            currentCheckpointId =
+                startingCheckpointId;
+
+            currentZoneId =
+                startingZoneId;
         }
     }
 
@@ -41,7 +86,9 @@ public class PlayerRespawn : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth.OnPlayerDied.AddListener(Respawn);
+            playerHealth
+                .OnPlayerDied
+                .AddListener(Respawn);
         }
     }
 
@@ -49,14 +96,76 @@ public class PlayerRespawn : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth.OnPlayerDied.RemoveListener(Respawn);
+            playerHealth
+                .OnPlayerDied
+                .RemoveListener(Respawn);
         }
     }
 
-    public void SetRespawnPoint(Transform respawnPoint)
+    public void SetRespawnPoint(
+        RespawnPoint respawnPoint
+    )
     {
-        currentRespawnPosition = respawnPoint.position;
-        currentRespawnRotation = respawnPoint.rotation;
+        if (respawnPoint == null)
+        {
+            return;
+        }
+
+        currentRespawnPosition =
+            respawnPoint.transform.position;
+
+        currentRespawnRotation =
+            respawnPoint.transform.rotation;
+
+        currentCheckpointId =
+            respawnPoint.CheckpointId;
+
+        currentZoneId =
+            respawnPoint.ZoneId;
+    }
+
+    public bool LoadCheckpoint(
+        string checkpointId
+    )
+    {
+        if (string.IsNullOrWhiteSpace(checkpointId))
+        {
+            return false;
+        }
+
+        RespawnPoint[] respawnPoints =
+            FindObjectsByType<RespawnPoint>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            );
+
+        for (int i = 0; i < respawnPoints.Length; i++)
+        {
+            RespawnPoint respawnPoint =
+                respawnPoints[i];
+
+            if (
+                respawnPoint != null &&
+                respawnPoint.CheckpointId ==
+                checkpointId
+            )
+            {
+                SetRespawnPoint(
+                    respawnPoint
+                );
+
+                Respawn();
+
+                return true;
+            }
+        }
+
+        Debug.LogWarning(
+            "Could not find saved checkpoint: " +
+            checkpointId
+        );
+
+        return false;
     }
 
     public void Respawn()
@@ -77,7 +186,8 @@ public class PlayerRespawn : MonoBehaviour
 
         if (enemyRespawnManager != null)
         {
-            enemyRespawnManager.ResetAllEnemies();
+            enemyRespawnManager
+                .ResetAllEnemies();
         }
     }
 }
