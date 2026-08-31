@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class UIButtonFeedback :
     MonoBehaviour,
@@ -13,7 +12,6 @@ public class UIButtonFeedback :
 {
     [Header("References")]
     [SerializeField] private RectTransform visualTarget;
-    [SerializeField] private AudioSource audioSource;
 
     [Header("Scale")]
     [SerializeField] private Vector3 normalScale = Vector3.one;
@@ -35,14 +33,16 @@ public class UIButtonFeedback :
     {
         if (visualTarget == null)
         {
-            visualTarget = transform as RectTransform;
+            visualTarget =
+                transform as RectTransform;
         }
 
         targetScale = normalScale;
 
         if (visualTarget != null)
         {
-            visualTarget.localScale = normalScale;
+            visualTarget.localScale =
+                normalScale;
         }
     }
 
@@ -53,28 +53,38 @@ public class UIButtonFeedback :
             return;
         }
 
-        visualTarget.localScale = Vector3.Lerp(
-            visualTarget.localScale,
-            targetScale,
-            scaleSpeed * Time.unscaledDeltaTime
-        );
+        visualTarget.localScale =
+            Vector3.Lerp(
+                visualTarget.localScale,
+                targetScale,
+                scaleSpeed *
+                Time.unscaledDeltaTime
+            );
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    public void OnPointerEnter(
+        PointerEventData eventData
+    )
     {
         SetHighlighted(true);
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnPointerExit(
+        PointerEventData eventData
+    )
     {
         highlighted = false;
         pressed = false;
+
         UpdateTargetScale();
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    public void OnPointerDown(
+        PointerEventData eventData
+    )
     {
         pressed = true;
+
         UpdateTargetScale();
 
         PlaySound(
@@ -83,34 +93,48 @@ public class UIButtonFeedback :
         );
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    public void OnPointerUp(
+        PointerEventData eventData
+    )
     {
         pressed = false;
+
         UpdateTargetScale();
     }
 
-    public void OnSelect(BaseEventData eventData)
+    public void OnSelect(
+        BaseEventData eventData
+    )
     {
         SetHighlighted(true);
     }
 
-    public void OnDeselect(BaseEventData eventData)
+    public void OnDeselect(
+        BaseEventData eventData
+    )
     {
         highlighted = false;
         pressed = false;
+
         UpdateTargetScale();
     }
 
-    private void SetHighlighted(bool value)
+    private void SetHighlighted(
+        bool value
+    )
     {
-        bool wasHighlighted = highlighted;
+        bool wasHighlighted =
+            highlighted;
 
         highlighted = value;
         pressed = false;
 
         UpdateTargetScale();
 
-        if (highlighted && !wasHighlighted)
+        if (
+            highlighted &&
+            !wasHighlighted
+        )
         {
             PlaySound(
                 highlightSound,
@@ -123,15 +147,18 @@ public class UIButtonFeedback :
     {
         if (pressed)
         {
-            targetScale = pressedScale;
+            targetScale =
+                pressedScale;
         }
         else if (highlighted)
         {
-            targetScale = highlightedScale;
+            targetScale =
+                highlightedScale;
         }
         else
         {
-            targetScale = normalScale;
+            targetScale =
+                normalScale;
         }
     }
 
@@ -140,15 +167,12 @@ public class UIButtonFeedback :
         float volume
     )
     {
-        if (
-            audioSource == null ||
-            clip == null
-        )
+        if (UIAudioManager.Instance == null)
         {
             return;
         }
 
-        audioSource.PlayOneShot(
+        UIAudioManager.Instance.PlaySound(
             clip,
             volume
         );
