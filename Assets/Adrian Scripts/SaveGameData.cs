@@ -7,8 +7,13 @@ public class SaveGameData
     public string sceneName;
     public string checkpointId;
     public string zoneId;
-    public List<ZoneCollectibleSaveData> zoneProgress = new List<ZoneCollectibleSaveData>();
-    public List<string> collectedPickupIds = new List<string>();
+    public bool betaCompleted;
+
+    public List<ZoneCollectibleSaveData> zoneProgress =
+        new List<ZoneCollectibleSaveData>();
+
+    public List<string> collectedPickupIds =
+        new List<string>();
 }
 
 [Serializable]

@@ -99,6 +99,13 @@ public class SaveGameManager : MonoBehaviour
             collectibleManager
                 .CreateCollectedPickupSaveData();
 
+        if (GameProgressManager.Instance != null)
+        {
+            data.betaCompleted =
+                GameProgressManager.Instance
+                    .BetaCompleted;
+        }
+
         string json =
             JsonUtility.ToJson(
                 data,
@@ -221,6 +228,14 @@ public class SaveGameManager : MonoBehaviour
                 pendingLoadData.zoneProgress,
                 pendingLoadData.collectedPickupIds
             );
+        }
+
+        if (GameProgressManager.Instance != null)
+        {
+            GameProgressManager.Instance
+                .RestoreProgress(
+                    pendingLoadData.betaCompleted
+                );
         }
 
         if (playerRespawn != null)

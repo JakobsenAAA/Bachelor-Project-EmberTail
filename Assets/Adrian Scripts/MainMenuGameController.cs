@@ -29,6 +29,12 @@ public class MainMenuGameController : MonoBehaviour
                 .ResetProgress();
         }
 
+        if (GameProgressManager.Instance != null)
+        {
+            GameProgressManager.Instance
+                .ResetProgress();
+        }
+
         Time.timeScale = 1f;
 
         if (LoadingScreenManager.Instance != null)
