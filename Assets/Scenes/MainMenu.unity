@@ -2388,7 +2388,7 @@ RectTransform:
   m_GameObject: {fileID: 918011150}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.4332, y: 1.4332, z: 1.4332}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 634259936}
@@ -2396,7 +2396,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 2.225, y: 5.5}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &929990521
@@ -4818,9 +4818,9 @@ MonoBehaviour:
   minimumLoadingScreenTime: 3
   ratImage: {fileID: 634259934}
   ratFrames:
-  - {fileID: 21300000, guid: b798a8f1cf6a3b64d9117ee13ea41c32, type: 3}
-  - {fileID: 21300000, guid: 8a9e2eeb432f91248a8ec22bc29d503b, type: 3}
-  - {fileID: 21300000, guid: 27776142910292240a002c2c814ecfc2, type: 3}
+  - {fileID: 21300000, guid: db036f86c8d059f43b45085e75c44b26, type: 3}
+  - {fileID: 21300000, guid: f641e4508da87914e95779ee7d234014, type: 3}
+  - {fileID: 21300000, guid: 04f6fb20228258f4faf4cf978de69391, type: 3}
   frameInterval: 0.5
 --- !u!1 &1987680166
 GameObject:
