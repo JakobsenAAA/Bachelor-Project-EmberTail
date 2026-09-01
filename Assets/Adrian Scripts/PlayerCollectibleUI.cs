@@ -3,26 +3,26 @@ using UnityEngine;
 
 public class PlayerCollectibleUI : MonoBehaviour
 {
-    [Header("Zone")]
-    [SerializeField] private string zoneId = "zone1";
-
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI collectible1Text;
     [SerializeField] private TextMeshProUGUI collectible2Text;
     [SerializeField] private TextMeshProUGUI collectible3Text;
 
     private CollectibleManager collectibleManager;
-    private bool subscribed;
+    private ZoneManager zoneManager;
+
+    private bool collectibleSubscribed;
+    private bool zoneSubscribed;
 
     private void Start()
     {
-        ConnectToManager();
+        ConnectToManagers();
         UpdateUI();
     }
 
     private void OnEnable()
     {
-        ConnectToManager();
+        ConnectToManagers();
     }
 
     private void OnDisable()
@@ -30,27 +30,54 @@ public class PlayerCollectibleUI : MonoBehaviour
         Unsubscribe();
     }
 
-    private void ConnectToManager()
+    private void ConnectToManagers()
     {
         if (collectibleManager == null)
         {
-            collectibleManager = CollectibleManager.Instance;
+            collectibleManager =
+                CollectibleManager.Instance;
         }
 
         if (collectibleManager == null)
         {
-            collectibleManager = FindFirstObjectByType<CollectibleManager>();
+            collectibleManager =
+                FindFirstObjectByType<CollectibleManager>();
         }
 
-        if (collectibleManager == null)
+        if (zoneManager == null)
         {
-            return;
+            zoneManager =
+                ZoneManager.Instance;
         }
 
-        if (!subscribed)
+        if (zoneManager == null)
         {
-            collectibleManager.OnCollectiblesChanged.AddListener(UpdateUI);
-            subscribed = true;
+            zoneManager =
+                FindFirstObjectByType<ZoneManager>();
+        }
+
+        if (
+            collectibleManager != null &&
+            !collectibleSubscribed
+        )
+        {
+            collectibleManager
+                .OnCollectiblesChanged
+                .AddListener(UpdateUI);
+
+            collectibleSubscribed = true;
+        }
+
+        if (
+            zoneManager != null &&
+            !zoneSubscribed
+        )
+        {
+            zoneManager
+                .OnZoneChanged
+                .AddListener(UpdateUI);
+
+            zoneSubscribed = true;
         }
 
         UpdateUI();
@@ -58,18 +85,37 @@ public class PlayerCollectibleUI : MonoBehaviour
 
     private void Unsubscribe()
     {
-        if (collectibleManager == null || !subscribed)
+        if (
+            collectibleManager != null &&
+            collectibleSubscribed
+        )
         {
-            return;
+            collectibleManager
+                .OnCollectiblesChanged
+                .RemoveListener(UpdateUI);
+
+            collectibleSubscribed = false;
         }
 
-        collectibleManager.OnCollectiblesChanged.RemoveListener(UpdateUI);
-        subscribed = false;
+        if (
+            zoneManager != null &&
+            zoneSubscribed
+        )
+        {
+            zoneManager
+                .OnZoneChanged
+                .RemoveListener(UpdateUI);
+
+            zoneSubscribed = false;
+        }
     }
 
     private void UpdateUI()
     {
-        if (collectibleManager == null)
+        if (
+            collectibleManager == null ||
+            zoneManager == null
+        )
         {
             return;
         }
@@ -100,9 +146,24 @@ public class PlayerCollectibleUI : MonoBehaviour
             return;
         }
 
-        int collected = collectibleManager.GetCollected(zoneId, type);
-        int total = collectibleManager.GetTotal(zoneId, type);
+        string zoneId =
+            zoneManager.CurrentZoneId;
 
-        text.text = collected + " / " + total;
+        int collected =
+            collectibleManager.GetCollected(
+                zoneId,
+                type
+            );
+
+        int total =
+            collectibleManager.GetTotal(
+                zoneId,
+                type
+            );
+
+        text.text =
+            collected +
+            " / " +
+            total;
     }
 }

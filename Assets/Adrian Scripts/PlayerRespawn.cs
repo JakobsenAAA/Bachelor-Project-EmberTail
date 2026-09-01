@@ -25,8 +25,11 @@ public class PlayerRespawn : MonoBehaviour
     private string currentZoneId;
     private bool deathTransitionActive;
 
-    public string CurrentCheckpointId => currentCheckpointId;
-    public string CurrentZoneId => currentZoneId;
+    public string CurrentCheckpointId =>
+        currentCheckpointId;
+
+    public string CurrentZoneId =>
+        currentZoneId;
 
     private void Awake()
     {
@@ -42,7 +45,9 @@ public class PlayerRespawn : MonoBehaviour
         if (enemyRespawnManager == null)
         {
             enemyRespawnManager =
-                FindFirstObjectByType<EnemyRespawnManager>();
+                FindFirstObjectByType<
+                    EnemyRespawnManager
+                >();
         }
 
         if (startingRespawnPoint != null)
@@ -88,6 +93,11 @@ public class PlayerRespawn : MonoBehaviour
             currentZoneId =
                 startingZoneId;
         }
+    }
+
+    private void Start()
+    {
+        UpdateZoneManager();
     }
 
     private void OnEnable()
@@ -140,7 +150,11 @@ public class PlayerRespawn : MonoBehaviour
         string checkpointId
     )
     {
-        if (string.IsNullOrWhiteSpace(checkpointId))
+        if (
+            string.IsNullOrWhiteSpace(
+                checkpointId
+            )
+        )
         {
             return false;
         }
@@ -151,7 +165,11 @@ public class PlayerRespawn : MonoBehaviour
                 FindObjectsSortMode.None
             );
 
-        for (int i = 0; i < respawnPoints.Length; i++)
+        for (
+            int i = 0;
+            i < respawnPoints.Length;
+            i++
+        )
         {
             RespawnPoint respawnPoint =
                 respawnPoints[i];
@@ -211,7 +229,9 @@ public class PlayerRespawn : MonoBehaviour
     private void CompleteDeathRespawn()
     {
         Respawn();
-        deathTransitionActive = false;
+
+        deathTransitionActive =
+            false;
     }
 
     public void Respawn()
@@ -227,6 +247,8 @@ public class PlayerRespawn : MonoBehaviour
         characterController.enabled =
             true;
 
+        UpdateZoneManager();
+
         if (playerHealth != null)
         {
             playerHealth
@@ -238,5 +260,18 @@ public class PlayerRespawn : MonoBehaviour
             enemyRespawnManager
                 .ResetAllEnemies();
         }
+    }
+
+    private void UpdateZoneManager()
+    {
+        if (ZoneManager.Instance == null)
+        {
+            return;
+        }
+
+        ZoneManager.Instance
+            .ForceCurrentZone(
+                currentZoneId
+            );
     }
 }
