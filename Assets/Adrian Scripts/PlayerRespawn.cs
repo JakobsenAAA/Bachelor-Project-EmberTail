@@ -11,6 +11,7 @@ public class PlayerRespawn : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerHealth playerHealth;
     [SerializeField] private EnemyRespawnManager enemyRespawnManager;
+    [SerializeField] private ThirdPersonCamera thirdPersonCamera;
 
     [Header("Death Transition")]
     [SerializeField] private bool useDeathTransition = true;
@@ -47,6 +48,14 @@ public class PlayerRespawn : MonoBehaviour
             enemyRespawnManager =
                 FindFirstObjectByType<
                     EnemyRespawnManager
+                >();
+        }
+
+        if (thirdPersonCamera == null)
+        {
+            thirdPersonCamera =
+                FindFirstObjectByType<
+                    ThirdPersonCamera
                 >();
         }
 
@@ -248,6 +257,12 @@ public class PlayerRespawn : MonoBehaviour
             true;
 
         UpdateZoneManager();
+
+        if (thirdPersonCamera != null)
+        {
+            thirdPersonCamera
+                .SnapToTarget();
+        }
 
         if (playerHealth != null)
         {

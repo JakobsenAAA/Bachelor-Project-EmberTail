@@ -10037,6 +10037,7 @@ MonoBehaviour:
   startingZoneId: zone1
   playerHealth: {fileID: 1149413971}
   enemyRespawnManager: {fileID: 496016664}
+  thirdPersonCamera: {fileID: 330585548}
   useDeathTransition: 1
   deathFadeOutDuration: 0.75
   deathLoadingDuration: 1.5

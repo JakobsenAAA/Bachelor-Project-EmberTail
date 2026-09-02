@@ -34,37 +34,112 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (cameraInputEnabled)
         {
-            Vector2 lookInput = playerController.LookInput;
+            Vector2 lookInput =
+                playerController.LookInput;
 
-            yaw += lookInput.x * mouseSensitivity;
-            pitch -= lookInput.y * mouseSensitivity;
-            pitch = Mathf.Clamp(pitch, minVerticalAngle, maxVerticalAngle);
+            yaw +=
+                lookInput.x *
+                mouseSensitivity;
+
+            pitch -=
+                lookInput.y *
+                mouseSensitivity;
+
+            pitch =
+                Mathf.Clamp(
+                    pitch,
+                    minVerticalAngle,
+                    maxVerticalAngle
+                );
         }
 
-        Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
-        Vector3 targetPosition = target.position + Vector3.up * height;
-        Vector3 desiredDirection = -(rotation * Vector3.forward);
-        Vector3 desiredPosition = targetPosition + desiredDirection * distance;
-
-        float finalDistance = distance;
-
-        if (Physics.SphereCast(targetPosition, collisionRadius, desiredDirection, out RaycastHit hit, distance, collisionLayer, QueryTriggerInteraction.Ignore))
-        {
-            finalDistance = Mathf.Clamp(hit.distance - collisionOffset, minimumDistance, distance);
-            desiredPosition = targetPosition + desiredDirection * finalDistance;
-        }
-
-        transform.position = Vector3.Lerp(
-            transform.position,
-            desiredPosition,
-            cameraSmoothSpeed * Time.deltaTime
-        );
-
-        transform.LookAt(targetPosition);
+        UpdateCameraPosition(false);
     }
 
     public void SetCameraInputEnabled(bool enabled)
     {
         cameraInputEnabled = enabled;
+    }
+
+    public void SnapToTarget()
+    {
+        UpdateCameraPosition(true);
+    }
+
+    private void UpdateCameraPosition(bool snapInstantly)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Quaternion rotation =
+            Quaternion.Euler(
+                pitch,
+                yaw,
+                0f
+            );
+
+        Vector3 targetPosition =
+            target.position +
+            Vector3.up *
+            height;
+
+        Vector3 desiredDirection =
+            -(rotation * Vector3.forward);
+
+        Vector3 desiredPosition =
+            targetPosition +
+            desiredDirection *
+            distance;
+
+        float finalDistance =
+            distance;
+
+        if (
+            Physics.SphereCast(
+                targetPosition,
+                collisionRadius,
+                desiredDirection,
+                out RaycastHit hit,
+                distance,
+                collisionLayer,
+                QueryTriggerInteraction.Ignore
+            )
+        )
+        {
+            finalDistance =
+                Mathf.Clamp(
+                    hit.distance -
+                    collisionOffset,
+                    minimumDistance,
+                    distance
+                );
+
+            desiredPosition =
+                targetPosition +
+                desiredDirection *
+                finalDistance;
+        }
+
+        if (snapInstantly)
+        {
+            transform.position =
+                desiredPosition;
+        }
+        else
+        {
+            transform.position =
+                Vector3.Lerp(
+                    transform.position,
+                    desiredPosition,
+                    cameraSmoothSpeed *
+                    Time.deltaTime
+                );
+        }
+
+        transform.LookAt(
+            targetPosition
+        );
     }
 }
