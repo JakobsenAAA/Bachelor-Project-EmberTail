@@ -9969,7 +9969,7 @@ MonoBehaviour:
   slideAcceleration: 18
   maxSlideSpeed: 12
   slideStickForce: 6
-  steeringStrength: 2.5
+  steeringStrength: 3
   rotationSpeed: 12
   slideJumpHeight: 2.4
   slideJumpForwardSpeed: 10
