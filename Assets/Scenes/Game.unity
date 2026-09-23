@@ -4439,7 +4439,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 4
   zoneId: zone1
   collectibleType: 1
   amount: 1
@@ -5711,7 +5711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 1
   zoneId: zone1
   collectibleType: 1
   amount: 1
@@ -6754,7 +6754,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 2
   zoneId: zone1
   collectibleType: 2
   amount: 1
@@ -7991,7 +7991,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 3
   zoneId: zone1
   collectibleType: 1
   amount: 1
@@ -10976,7 +10976,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 2
   zoneId: zone1
   collectibleType: 1
   amount: 1
@@ -14890,7 +14890,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 3
   zoneId: zone1
   collectibleType: 2
   amount: 1
@@ -16943,7 +16943,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ab3fe8f25525614bb41bb677451025e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectiblePickup
-  pickupId: 
+  pickupId: 1
   zoneId: zone1
   collectibleType: 2
   amount: 1
