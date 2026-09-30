@@ -13,6 +13,7 @@ public class MainMenuCameraMovement : MonoBehaviour
     [SerializeField] private float smoothSpeed = 4f;
 
     private Vector3 startingPosition;
+    private bool movementEnabled = true;
 
     private void Awake()
     {
@@ -21,6 +22,11 @@ public class MainMenuCameraMovement : MonoBehaviour
 
     private void Update()
     {
+        if (!movementEnabled)
+        {
+            return;
+        }
+
         if (Mouse.current == null)
         {
             return;
@@ -83,5 +89,10 @@ public class MainMenuCameraMovement : MonoBehaviour
                 smoothSpeed *
                 Time.unscaledDeltaTime
             );
+    }
+
+    public void SetMovementEnabled(bool enabled)
+    {
+        movementEnabled = enabled;
     }
 }

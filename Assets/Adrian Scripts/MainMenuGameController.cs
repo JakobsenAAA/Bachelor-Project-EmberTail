@@ -10,12 +10,53 @@ public class MainMenuGameController : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Button loadGameButton;
 
+    [Header("Transition")]
+    [SerializeField] private MainMenuTransitionController transitionController;
+
     private void Start()
     {
         RefreshLoadButton();
     }
 
     public void StartNewGame()
+    {
+        if (transitionController != null)
+        {
+            transitionController
+                .StartTransition(
+                    CompleteNewGame
+                );
+
+            return;
+        }
+
+        CompleteNewGame();
+    }
+
+    public void LoadGame()
+    {
+        if (
+            SaveGameManager.Instance == null ||
+            !SaveGameManager.Instance.HasSaveGame()
+        )
+        {
+            return;
+        }
+
+        if (transitionController != null)
+        {
+            transitionController
+                .StartTransition(
+                    CompleteLoadGame
+                );
+
+            return;
+        }
+
+        CompleteLoadGame();
+    }
+
+    private void CompleteNewGame()
     {
         if (SaveGameManager.Instance != null)
         {
@@ -52,7 +93,7 @@ public class MainMenuGameController : MonoBehaviour
         }
     }
 
-    public void LoadGame()
+    private void CompleteLoadGame()
     {
         if (SaveGameManager.Instance == null)
         {
