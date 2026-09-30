@@ -20,6 +20,9 @@ public class MainMenuTransitionController : MonoBehaviour
             1f
         );
 
+    [Header("Burn")]
+    [SerializeField] private MainMenuBurnGroup burnGroup;
+
     [Header("Timing")]
     [SerializeField] private float holdAtBonfireDuration = 0.25f;
 
@@ -55,8 +58,14 @@ public class MainMenuTransitionController : MonoBehaviour
 
         if (cameraMovement != null)
         {
-            cameraMovement
-                .SetMovementEnabled(false);
+            cameraMovement.SetMovementEnabled(
+                false
+            );
+        }
+
+        if (burnGroup != null)
+        {
+            burnGroup.Burn();
         }
 
         if (
@@ -144,11 +153,7 @@ public class MainMenuTransitionController : MonoBehaviour
             return;
         }
 
-        for (
-            int i = 0;
-            i < buttonsToDisable.Length;
-            i++
-        )
+        for (int i = 0; i < buttonsToDisable.Length; i++)
         {
             if (buttonsToDisable[i] != null)
             {
