@@ -36,17 +36,10 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
 
-        if (items.ContainsKey(itemId))
-        {
-            items[itemId] += amount;
-        }
-        else
-        {
-            items.Add(
-                itemId,
-                amount
-            );
-        }
+        AddItemById(
+            itemId,
+            amount
+        );
 
         Debug.Log(
             "Added " +
@@ -183,10 +176,117 @@ public class PlayerInventory : MonoBehaviour
         return 0;
     }
 
+    public List<InventoryItemSaveData>
+        CreateSaveData()
+    {
+        List<InventoryItemSaveData> saveData =
+            new List<InventoryItemSaveData>();
+
+        foreach (
+            KeyValuePair<string, int> item
+            in items
+        )
+        {
+            InventoryItemSaveData itemData =
+                new InventoryItemSaveData();
+
+            itemData.itemId =
+                item.Key;
+
+            itemData.amount =
+                item.Value;
+
+            saveData.Add(
+                itemData
+            );
+        }
+
+        return saveData;
+    }
+
+    public void RestoreSaveData(
+        List<InventoryItemSaveData> savedItems
+    )
+    {
+        items.Clear();
+
+        if (savedItems != null)
+        {
+            for (
+                int i = 0;
+                i < savedItems.Count;
+                i++
+            )
+            {
+                InventoryItemSaveData savedItem =
+                    savedItems[i];
+
+                if (savedItem == null)
+                {
+                    continue;
+                }
+
+                if (
+                    string.IsNullOrWhiteSpace(
+                        savedItem.itemId
+                    )
+                )
+                {
+                    continue;
+                }
+
+                if (savedItem.amount <= 0)
+                {
+                    continue;
+                }
+
+                AddItemById(
+                    savedItem.itemId,
+                    savedItem.amount
+                );
+            }
+        }
+
+        InventoryChanged?.Invoke();
+    }
+
     public void ClearInventory()
     {
         items.Clear();
 
         InventoryChanged?.Invoke();
+    }
+
+    private void AddItemById(
+        string itemId,
+        int amount
+    )
+    {
+        if (
+            string.IsNullOrWhiteSpace(
+                itemId
+            )
+        )
+        {
+            return;
+        }
+
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        if (items.ContainsKey(itemId))
+        {
+            items[itemId] +=
+                amount;
+        }
+        else
+        {
+            items.Add(
+                itemId,
+                amount
+            );
+        }
     }
 }

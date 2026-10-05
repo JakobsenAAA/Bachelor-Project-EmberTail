@@ -18,6 +18,16 @@ public class MainMenuGameController : MonoBehaviour
         RefreshLoadButton();
     }
 
+    private void OnEnable()
+    {
+        RefreshLoadButton();
+    }
+
+    private void LateUpdate()
+    {
+        RefreshLoadButton();
+    }
+
     public void StartNewGame()
     {
         if (transitionController != null)
@@ -40,6 +50,7 @@ public class MainMenuGameController : MonoBehaviour
             !SaveGameManager.Instance.HasSaveGame()
         )
         {
+            RefreshLoadButton();
             return;
         }
 
@@ -58,19 +69,25 @@ public class MainMenuGameController : MonoBehaviour
 
     private void CompleteNewGame()
     {
-        if (SaveGameManager.Instance != null)
+        if (
+            SaveGameManager.Instance != null
+        )
         {
             SaveGameManager.Instance
                 .DeleteSave();
         }
 
-        if (CollectibleManager.Instance != null)
+        if (
+            CollectibleManager.Instance != null
+        )
         {
             CollectibleManager.Instance
                 .ResetProgress();
         }
 
-        if (GameProgressManager.Instance != null)
+        if (
+            GameProgressManager.Instance != null
+        )
         {
             GameProgressManager.Instance
                 .ResetProgress();
@@ -78,7 +95,9 @@ public class MainMenuGameController : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        if (LoadingScreenManager.Instance != null)
+        if (
+            LoadingScreenManager.Instance != null
+        )
         {
             LoadingScreenManager.Instance
                 .LoadScene(
@@ -95,7 +114,9 @@ public class MainMenuGameController : MonoBehaviour
 
     private void CompleteLoadGame()
     {
-        if (SaveGameManager.Instance == null)
+        if (
+            SaveGameManager.Instance == null
+        )
         {
             return;
         }
@@ -127,7 +148,13 @@ public class MainMenuGameController : MonoBehaviour
             SaveGameManager.Instance
                 .HasSaveGame();
 
-        loadGameButton.interactable =
-            hasSave;
+        if (
+            loadGameButton.interactable !=
+            hasSave
+        )
+        {
+            loadGameButton.interactable =
+                hasSave;
+        }
     }
 }

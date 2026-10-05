@@ -12130,6 +12130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2cca30c66fb3b428719949224e6d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemPickup
+  pickupId: 2
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
@@ -13728,6 +13729,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2cca30c66fb3b428719949224e6d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemPickup
+  pickupId: 4
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
@@ -15238,6 +15240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2cca30c66fb3b428719949224e6d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemPickup
+  pickupId: 3
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
@@ -23616,6 +23619,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2cca30c66fb3b428719949224e6d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemPickup
+  pickupId: 1
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
@@ -27599,6 +27603,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2cca30c66fb3b428719949224e6d2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryItemPickup
+  pickupId: 0
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom

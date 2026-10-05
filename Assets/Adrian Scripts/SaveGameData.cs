@@ -14,6 +14,15 @@ public class SaveGameData
 
     public List<string> collectedPickupIds =
         new List<string>();
+
+    public List<InventoryItemSaveData> inventoryItems =
+        new List<InventoryItemSaveData>();
+
+    public List<string> collectedInventoryPickupIds =
+        new List<string>();
+
+    public List<QuestSaveData> quests =
+        new List<QuestSaveData>();
 }
 
 [Serializable]
@@ -23,4 +32,19 @@ public class ZoneCollectibleSaveData
     public int collectible1;
     public int collectible2;
     public int collectible3;
+}
+
+[Serializable]
+public class InventoryItemSaveData
+{
+    public string itemId;
+    public int amount;
+}
+
+[Serializable]
+public class QuestSaveData
+{
+    public string questId;
+    public QuestState state;
+    public int currentProgress;
 }

@@ -19,7 +19,10 @@ public class SaveGameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (
+            Instance != null &&
+            Instance != this
+        )
         {
             Destroy(gameObject);
             return;
@@ -27,7 +30,9 @@ public class SaveGameManager : MonoBehaviour
 
         Instance = this;
 
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(
+            gameObject
+        );
 
         SceneManager.sceneLoaded +=
             OnSceneLoaded;
@@ -39,6 +44,8 @@ public class SaveGameManager : MonoBehaviour
         {
             SceneManager.sceneLoaded -=
                 OnSceneLoaded;
+
+            Instance = null;
         }
     }
 
@@ -64,12 +71,20 @@ public class SaveGameManager : MonoBehaviour
         PlayerRespawn playerRespawn =
             FindFirstObjectByType<PlayerRespawn>();
 
+        PlayerInventory playerInventory =
+            FindFirstObjectByType<PlayerInventory>();
+
         CollectibleManager collectibleManager =
             CollectibleManager.Instance;
 
+        QuestManager questManager =
+            QuestManager.Instance;
+
         if (
             playerRespawn == null ||
-            collectibleManager == null
+            playerInventory == null ||
+            collectibleManager == null ||
+            questManager == null
         )
         {
             Debug.LogWarning(
@@ -83,13 +98,17 @@ public class SaveGameManager : MonoBehaviour
             new SaveGameData();
 
         data.sceneName =
-            SceneManager.GetActiveScene().name;
+            SceneManager
+                .GetActiveScene()
+                .name;
 
         data.checkpointId =
-            playerRespawn.CurrentCheckpointId;
+            playerRespawn
+                .CurrentCheckpointId;
 
         data.zoneId =
-            playerRespawn.CurrentZoneId;
+            playerRespawn
+                .CurrentZoneId;
 
         data.zoneProgress =
             collectibleManager
@@ -99,7 +118,21 @@ public class SaveGameManager : MonoBehaviour
             collectibleManager
                 .CreateCollectedPickupSaveData();
 
-        if (GameProgressManager.Instance != null)
+        data.inventoryItems =
+            playerInventory
+                .CreateSaveData();
+
+        data.collectedInventoryPickupIds =
+            InventoryItemPickup
+                .CreateCollectedPickupSaveData();
+
+        data.quests =
+            questManager
+                .CreateSaveData();
+
+        if (
+            GameProgressManager.Instance != null
+        )
         {
             data.betaCompleted =
                 GameProgressManager.Instance
@@ -142,9 +175,10 @@ public class SaveGameManager : MonoBehaviour
             );
 
         pendingLoadData =
-            JsonUtility.FromJson<SaveGameData>(
-                json
-            );
+            JsonUtility
+                .FromJson<SaveGameData>(
+                    json
+                );
 
         if (
             pendingLoadData == null ||
@@ -164,7 +198,9 @@ public class SaveGameManager : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        if (LoadingScreenManager.Instance != null)
+        if (
+            LoadingScreenManager.Instance != null
+        )
         {
             LoadingScreenManager.Instance
                 .LoadScene(
@@ -185,12 +221,19 @@ public class SaveGameManager : MonoBehaviour
     {
         pendingLoadData = null;
 
-        if (File.Exists(SavePath))
+        if (
+            File.Exists(
+                SavePath
+            )
+        )
         {
             File.Delete(
                 SavePath
             );
         }
+
+        InventoryItemPickup
+            .ResetCollectedPickups();
     }
 
     private void OnSceneLoaded(
@@ -222,15 +265,46 @@ public class SaveGameManager : MonoBehaviour
         PlayerRespawn playerRespawn =
             FindFirstObjectByType<PlayerRespawn>();
 
+        PlayerInventory playerInventory =
+            FindFirstObjectByType<PlayerInventory>();
+
+        QuestManager questManager =
+            QuestManager.Instance;
+
         if (collectibleManager != null)
         {
-            collectibleManager.RestoreSaveData(
-                pendingLoadData.zoneProgress,
-                pendingLoadData.collectedPickupIds
-            );
+            collectibleManager
+                .RestoreSaveData(
+                    pendingLoadData.zoneProgress,
+                    pendingLoadData.collectedPickupIds
+                );
         }
 
-        if (GameProgressManager.Instance != null)
+        InventoryItemPickup
+            .RestoreCollectedPickupSaveData(
+                pendingLoadData
+                    .collectedInventoryPickupIds
+            );
+
+        if (playerInventory != null)
+        {
+            playerInventory
+                .RestoreSaveData(
+                    pendingLoadData.inventoryItems
+                );
+        }
+
+        if (questManager != null)
+        {
+            questManager
+                .RestoreSaveData(
+                    pendingLoadData.quests
+                );
+        }
+
+        if (
+            GameProgressManager.Instance != null
+        )
         {
             GameProgressManager.Instance
                 .RestoreProgress(
@@ -240,9 +314,10 @@ public class SaveGameManager : MonoBehaviour
 
         if (playerRespawn != null)
         {
-            playerRespawn.LoadCheckpoint(
-                pendingLoadData.checkpointId
-            );
+            playerRespawn
+                .LoadCheckpoint(
+                    pendingLoadData.checkpointId
+                );
         }
 
         pendingLoadData = null;

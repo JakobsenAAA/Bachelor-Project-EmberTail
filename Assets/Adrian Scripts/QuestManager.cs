@@ -18,6 +18,8 @@ public class QuestManager : MonoBehaviour
 
     private PlayerInventory playerInventory;
 
+    private bool restoringSaveData;
+
     private void Awake()
     {
         if (
@@ -430,8 +432,119 @@ public class QuestManager : MonoBehaviour
         return runtimeQuest.State;
     }
 
+    public List<QuestSaveData>
+        CreateSaveData()
+    {
+        List<QuestSaveData> saveData =
+            new List<QuestSaveData>();
+
+        foreach (
+            KeyValuePair<string, QuestRuntimeData>
+            pair in quests
+        )
+        {
+            QuestRuntimeData runtimeQuest =
+                pair.Value;
+
+            if (
+                runtimeQuest == null ||
+                runtimeQuest.QuestData == null
+            )
+            {
+                continue;
+            }
+
+            QuestSaveData questData =
+                new QuestSaveData();
+
+            questData.questId =
+                runtimeQuest
+                    .QuestData
+                    .QuestId;
+
+            questData.state =
+                runtimeQuest.State;
+
+            questData.currentProgress =
+                runtimeQuest.CurrentProgress;
+
+            saveData.Add(
+                questData
+            );
+        }
+
+        return saveData;
+    }
+
+    public void RestoreSaveData(
+        List<QuestSaveData> savedQuests
+    )
+    {
+        restoringSaveData = true;
+
+        quests.Clear();
+
+        RegisterQuestDefinitions();
+
+        if (savedQuests != null)
+        {
+            for (
+                int i = 0;
+                i < savedQuests.Count;
+                i++
+            )
+            {
+                QuestSaveData savedQuest =
+                    savedQuests[i];
+
+                if (savedQuest == null)
+                {
+                    continue;
+                }
+
+                if (
+                    string.IsNullOrWhiteSpace(
+                        savedQuest.questId
+                    )
+                )
+                {
+                    continue;
+                }
+
+                QuestRuntimeData runtimeQuest =
+                    GetQuest(
+                        savedQuest.questId
+                    );
+
+                if (runtimeQuest == null)
+                {
+                    Debug.LogWarning(
+                        "Could not restore quest: " +
+                        savedQuest.questId
+                    );
+
+                    continue;
+                }
+
+                runtimeQuest.SetState(
+                    savedQuest.state
+                );
+
+                runtimeQuest.SetProgress(
+                    savedQuest.currentProgress
+                );
+            }
+        }
+
+        restoringSaveData = false;
+
+        OnQuestChanged.Invoke();
+    }
+
     private void RegisterStartingQuests()
     {
+        RegisterQuestDefinitions();
+
         if (startingQuests == null)
         {
             return;
@@ -456,12 +569,65 @@ public class QuestManager : MonoBehaviour
                     quest
                 );
 
-            runtimeQuest.SetState(
-                QuestState.Available
-            );
+            if (
+                runtimeQuest.State ==
+                QuestState.Unavailable
+            )
+            {
+                runtimeQuest.SetState(
+                    QuestState.Available
+                );
+            }
         }
 
         OnQuestChanged.Invoke();
+    }
+
+    private void RegisterQuestDefinitions()
+    {
+        if (startingQuests == null)
+        {
+            return;
+        }
+
+        for (
+            int i = 0;
+            i < startingQuests.Length;
+            i++
+        )
+        {
+            RegisterQuestChain(
+                startingQuests[i]
+            );
+        }
+    }
+
+    private void RegisterQuestChain(
+        QuestData quest
+    )
+    {
+        if (quest == null)
+        {
+            return;
+        }
+
+        if (
+            !string.IsNullOrWhiteSpace(
+                quest.QuestId
+            )
+        )
+        {
+            GetOrCreateQuest(
+                quest
+            );
+        }
+
+        if (quest.NextQuest != null)
+        {
+            RegisterQuestChain(
+                quest.NextQuest
+            );
+        }
     }
 
     private QuestRuntimeData GetOrCreateQuest(
@@ -494,6 +660,11 @@ public class QuestManager : MonoBehaviour
 
     private void HandleInventoryChanged()
     {
+        if (restoringSaveData)
+        {
+            return;
+        }
+
         RefreshAllQuests();
     }
 
@@ -582,6 +753,7 @@ public class QuestManager : MonoBehaviour
                 );
 
                 if (
+                    !restoringSaveData &&
                     QuestNotificationUI.Instance != null
                 )
                 {

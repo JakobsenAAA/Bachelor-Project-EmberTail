@@ -25,6 +25,28 @@ public class QuestGiver :
 
     private GameObject spawnedReward;
 
+    private void Start()
+    {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestChanged.AddListener(
+                HandleQuestChanged
+            );
+        }
+
+        CheckPendingReward();
+    }
+
+    private void OnDestroy()
+    {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestChanged.RemoveListener(
+                HandleQuestChanged
+            );
+        }
+    }
+
     public string InteractionPrompt
     {
         get
@@ -120,11 +142,10 @@ public class QuestGiver :
             return;
         }
 
-        DialogueManager.Instance
-            .StartDialogue(
-                offerDialogue,
-                ShowQuestOffer
-            );
+        DialogueManager.Instance.StartDialogue(
+            offerDialogue,
+            ShowQuestOffer
+        );
     }
 
     private void ShowQuestOffer()
@@ -137,10 +158,9 @@ public class QuestGiver :
             return;
         }
 
-        QuestOfferUI.Instance
-            .ShowQuest(
-                quest
-            );
+        QuestOfferUI.Instance.ShowQuest(
+            quest
+        );
     }
 
     private void StartActiveDialogue()
@@ -150,10 +170,9 @@ public class QuestGiver :
             return;
         }
 
-        DialogueManager.Instance
-            .StartDialogue(
-                activeDialogue
-            );
+        DialogueManager.Instance.StartDialogue(
+            activeDialogue
+        );
     }
 
     private void StartCompletionDialogue()
@@ -164,11 +183,10 @@ public class QuestGiver :
             return;
         }
 
-        DialogueManager.Instance
-            .StartDialogue(
-                completionDialogue,
-                CompleteQuest
-            );
+        DialogueManager.Instance.StartDialogue(
+            completionDialogue,
+            CompleteQuest
+        );
     }
 
     private void CompleteQuest()
@@ -202,7 +220,7 @@ public class QuestGiver :
                     );
             }
 
-            SpawnReward();
+            CheckPendingReward();
         }
 
         if (DialogueManager.Instance != null)
@@ -210,6 +228,40 @@ public class QuestGiver :
             DialogueManager.Instance
                 .ReleaseGameplayLock();
         }
+    }
+
+    private void HandleQuestChanged()
+    {
+        CheckPendingReward();
+    }
+
+    private void CheckPendingReward()
+    {
+        if (quest == null)
+        {
+            return;
+        }
+
+        if (QuestManager.Instance == null)
+        {
+            return;
+        }
+
+        QuestState state =
+            QuestManager.Instance
+                .GetQuestState(
+                    quest
+                );
+
+        if (
+            state !=
+            QuestState.Completed
+        )
+        {
+            return;
+        }
+
+        SpawnReward();
     }
 
     private void SpawnReward()
@@ -223,11 +275,6 @@ public class QuestGiver :
             quest.CollectibleRewardPrefab == null
         )
         {
-            Debug.LogWarning(
-                quest.QuestName +
-                " has no Collectible Reward Prefab."
-            );
-
             return;
         }
 
@@ -277,6 +324,15 @@ public class QuestGiver :
                 )
         )
         {
+            if (spawnedReward != null)
+            {
+                Destroy(
+                    spawnedReward
+                );
+
+                spawnedReward = null;
+            }
+
             return;
         }
 
@@ -310,9 +366,8 @@ public class QuestGiver :
             return;
         }
 
-        DialogueManager.Instance
-            .StartDialogue(
-                completedDialogue
-            );
+        DialogueManager.Instance.StartDialogue(
+            completedDialogue
+        );
     }
 }
