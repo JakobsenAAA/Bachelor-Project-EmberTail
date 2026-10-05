@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   speakerName: Old Rat
   dialogueLines:
-  - 'Those mushrooms should grow somewhere nearby.
+  - 'Those red mushrooms should grow somewhere nearby.
 
-    
+    They used to grow in
+    the forest.
+
 
     Five should be enough.'
