@@ -1,7 +1,7 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -29,6 +29,8 @@ public class DialogueManager : MonoBehaviour
 
     private bool dialogueActive;
     private bool lineTyping;
+
+    private Action dialogueCompletedAction;
 
     public bool DialogueActive =>
         dialogueActive;
@@ -59,6 +61,17 @@ public class DialogueManager : MonoBehaviour
         DialogueData dialogue
     )
     {
+        StartDialogue(
+            dialogue,
+            null
+        );
+    }
+
+    public void StartDialogue(
+        DialogueData dialogue,
+        Action completedAction
+    )
+    {
         if (dialogue == null)
         {
             return;
@@ -75,6 +88,9 @@ public class DialogueManager : MonoBehaviour
         currentDialogue = dialogue;
         currentLineIndex = 0;
         dialogueActive = true;
+
+        dialogueCompletedAction =
+            completedAction;
 
         if (dialoguePanel != null)
         {
@@ -223,6 +239,23 @@ public class DialogueManager : MonoBehaviour
             dialoguePanel.SetActive(false);
         }
 
+        Action completedAction =
+            dialogueCompletedAction;
+
+        dialogueCompletedAction = null;
+
+        if (completedAction != null)
+        {
+            completedAction.Invoke();
+        }
+        else
+        {
+            UnlockGameplay();
+        }
+    }
+
+    public void ReleaseGameplayLock()
+    {
         UnlockGameplay();
     }
 
