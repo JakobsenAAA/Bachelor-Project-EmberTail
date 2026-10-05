@@ -19,4 +19,9 @@ MonoBehaviour:
   targetId: 
   requiredAmount: 5
   requiredItem: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
+  collectibleRewardPrefab: {fileID: 0}
+  rewardPickupId: 
+  rewardZoneId: 
+  rewardCollectibleType: 0
+  rewardAmount: 1
   nextQuest: {fileID: 0}
