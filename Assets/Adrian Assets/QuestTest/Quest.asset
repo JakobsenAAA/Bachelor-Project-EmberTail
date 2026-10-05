@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1296e9724c81e7c48b3f9e5eafc9da81, type: 3}
+  m_Name: Quest
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: mushroom_quest
+  questName: A Hungry Neighbor
+  questDescription: Collect 5 Mushrooms for the old rat.
+  objectiveType: 0
+  targetId: 
+  requiredAmount: 5
+  requiredItem: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
+  nextQuest: {fileID: 0}
