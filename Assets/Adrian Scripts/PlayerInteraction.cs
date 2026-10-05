@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,6 +10,7 @@ public class PlayerInteraction : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private GameObject interactionPromptUI;
+    [SerializeField] private TMP_Text interactionPromptText;
 
     private IInteractable currentInteractable;
     private bool interactionEnabled = true;
@@ -31,12 +33,23 @@ public class PlayerInteraction : MonoBehaviour
 
     public void OnInteract(InputValue value)
     {
-        if (!interactionEnabled)
+        if (!value.isPressed)
         {
             return;
         }
 
-        if (!value.isPressed)
+        if (
+            DialogueManager.Instance != null &&
+            DialogueManager.Instance.DialogueActive
+        )
+        {
+            DialogueManager.Instance
+                .HandleInteract();
+
+            return;
+        }
+
+        if (!interactionEnabled)
         {
             return;
         }
@@ -106,6 +119,7 @@ public class PlayerInteraction : MonoBehaviour
             if (distance < closestDistance)
             {
                 closestDistance = distance;
+
                 closestInteractable =
                     interactable;
             }
@@ -144,6 +158,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (currentInteractable == interactable)
         {
+            UpdatePrompt();
             return;
         }
 
@@ -169,12 +184,34 @@ public class PlayerInteraction : MonoBehaviour
 
     private void ShowPrompt()
     {
+        UpdatePrompt();
+
         if (interactionPromptUI != null)
         {
             interactionPromptUI.SetActive(
                 true
             );
         }
+    }
+
+    private void UpdatePrompt()
+    {
+        if (interactionPromptText == null)
+        {
+            return;
+        }
+
+        if (currentInteractable == null)
+        {
+            interactionPromptText.text =
+                string.Empty;
+
+            return;
+        }
+
+        interactionPromptText.text =
+            currentInteractable
+                .InteractionPrompt;
     }
 
     private void HidePrompt()
@@ -184,6 +221,12 @@ public class PlayerInteraction : MonoBehaviour
             interactionPromptUI.SetActive(
                 false
             );
+        }
+
+        if (interactionPromptText != null)
+        {
+            interactionPromptText.text =
+                string.Empty;
         }
     }
 
