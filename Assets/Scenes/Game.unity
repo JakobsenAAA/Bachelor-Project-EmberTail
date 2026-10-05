@@ -14958,7 +14958,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cab5668229c3d94fb6df74dfc2d1b6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleDoor
-  door: {fileID: 0}
+  door: {fileID: 779101720}
   openOffset: {x: 0, y: 3, z: 0}
   openDuration: 1
   openCurve:
