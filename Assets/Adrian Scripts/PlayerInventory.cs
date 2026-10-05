@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,8 @@ public class PlayerInventory : MonoBehaviour
 {
     private readonly Dictionary<string, int> items =
         new Dictionary<string, int>();
+
+    public event Action InventoryChanged;
 
     public void AddItem(
         ItemData item,
@@ -53,6 +56,8 @@ public class PlayerInventory : MonoBehaviour
             ". Total: " +
             items[itemId]
         );
+
+        InventoryChanged?.Invoke();
     }
 
     public bool RemoveItem(
@@ -97,6 +102,8 @@ public class PlayerInventory : MonoBehaviour
         {
             items.Remove(itemId);
         }
+
+        InventoryChanged?.Invoke();
 
         return true;
     }
@@ -179,5 +186,7 @@ public class PlayerInventory : MonoBehaviour
     public void ClearInventory()
     {
         items.Clear();
+
+        InventoryChanged?.Invoke();
     }
 }

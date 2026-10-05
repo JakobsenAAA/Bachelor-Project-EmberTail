@@ -37,7 +37,27 @@ public class QuestManager : MonoBehaviour
         playerInventory =
             FindFirstObjectByType<PlayerInventory>();
 
+        if (playerInventory != null)
+        {
+            playerInventory.InventoryChanged +=
+                HandleInventoryChanged;
+        }
+
         RegisterStartingQuests();
+    }
+
+    private void OnDestroy()
+    {
+        if (playerInventory != null)
+        {
+            playerInventory.InventoryChanged -=
+                HandleInventoryChanged;
+        }
+
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     public void AcceptQuest(
@@ -472,6 +492,11 @@ public class QuestManager : MonoBehaviour
         return newQuest;
     }
 
+    private void HandleInventoryChanged()
+    {
+        RefreshAllQuests();
+    }
+
     private void RefreshQuestProgress(
         QuestRuntimeData runtimeQuest
     )
@@ -540,16 +565,34 @@ public class QuestManager : MonoBehaviour
             runtimeQuest.QuestData.RequiredAmount
         )
         {
-            runtimeQuest.SetState(
+            if (
+                runtimeQuest.State !=
                 QuestState.ReadyToTurnIn
-            );
+            )
+            {
+                runtimeQuest.SetState(
+                    QuestState.ReadyToTurnIn
+                );
 
-            Debug.Log(
-                "Quest objective complete: " +
-                runtimeQuest
-                    .QuestData
-                    .QuestName
-            );
+                Debug.Log(
+                    "Quest objective complete: " +
+                    runtimeQuest
+                        .QuestData
+                        .QuestName
+                );
+
+                if (
+                    QuestNotificationUI.Instance != null
+                )
+                {
+                    QuestNotificationUI.Instance
+                        .ShowObjectiveComplete(
+                            runtimeQuest
+                                .QuestData
+                                .QuestName
+                        );
+                }
+            }
         }
         else if (
             runtimeQuest.State ==

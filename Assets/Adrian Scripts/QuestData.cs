@@ -33,6 +33,13 @@ public class QuestData : ScriptableObject
     [Header("Item")]
     [SerializeField] private ItemData requiredItem;
 
+    [Header("Reward")]
+    [SerializeField] private CollectiblePickup collectibleRewardPrefab;
+    [SerializeField] private string rewardPickupId;
+    [SerializeField] private string rewardZoneId;
+    [SerializeField] private CollectibleType rewardCollectibleType;
+    [SerializeField] private int rewardAmount = 1;
+
     [Header("Quest Chain")]
     [SerializeField] private QuestData nextQuest;
 
@@ -56,6 +63,21 @@ public class QuestData : ScriptableObject
 
     public ItemData RequiredItem =>
         requiredItem;
+
+    public CollectiblePickup CollectibleRewardPrefab =>
+        collectibleRewardPrefab;
+
+    public string RewardPickupId =>
+        rewardPickupId;
+
+    public string RewardZoneId =>
+        rewardZoneId;
+
+    public CollectibleType RewardCollectibleType =>
+        rewardCollectibleType;
+
+    public int RewardAmount =>
+        rewardAmount;
 
     public QuestData NextQuest =>
         nextQuest;

@@ -20,6 +20,11 @@ public class QuestGiver :
     [SerializeField] private string turnInPrompt =
         "Turn In Quest";
 
+    [Header("Reward")]
+    [SerializeField] private Transform rewardSpawnPoint;
+
+    private GameObject spawnedReward;
+
     public string InteractionPrompt
     {
         get
@@ -90,27 +95,19 @@ public class QuestGiver :
         switch (state)
         {
             case QuestState.Available:
-
                 StartOfferDialogue();
-
                 break;
 
             case QuestState.Active:
-
                 StartActiveDialogue();
-
                 break;
 
             case QuestState.ReadyToTurnIn:
-
                 StartCompletionDialogue();
-
                 break;
 
             case QuestState.Completed:
-
                 StartCompletedDialogue();
-
                 break;
         }
     }
@@ -178,19 +175,132 @@ public class QuestGiver :
     {
         if (QuestManager.Instance == null)
         {
-            DialogueManager.Instance
-                .ReleaseGameplayLock();
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance
+                    .ReleaseGameplayLock();
+            }
 
             return;
         }
 
-        QuestManager.Instance
-            .TurnInQuest(
-                quest
+        bool completed =
+            QuestManager.Instance
+                .TurnInQuest(
+                    quest
+                );
+
+        if (completed)
+        {
+            if (
+                QuestNotificationUI.Instance != null
+            )
+            {
+                QuestNotificationUI.Instance
+                    .ShowQuestComplete(
+                        quest.QuestName
+                    );
+            }
+
+            SpawnReward();
+        }
+
+        if (DialogueManager.Instance != null)
+        {
+            DialogueManager.Instance
+                .ReleaseGameplayLock();
+        }
+    }
+
+    private void SpawnReward()
+    {
+        if (quest == null)
+        {
+            return;
+        }
+
+        if (
+            quest.CollectibleRewardPrefab == null
+        )
+        {
+            Debug.LogWarning(
+                quest.QuestName +
+                " has no Collectible Reward Prefab."
             );
 
-        DialogueManager.Instance
-            .ReleaseGameplayLock();
+            return;
+        }
+
+        if (rewardSpawnPoint == null)
+        {
+            Debug.LogWarning(
+                gameObject.name +
+                " has no Reward Spawn Point."
+            );
+
+            return;
+        }
+
+        if (
+            string.IsNullOrWhiteSpace(
+                quest.RewardPickupId
+            )
+        )
+        {
+            Debug.LogWarning(
+                quest.QuestName +
+                " has no Reward Pickup ID."
+            );
+
+            return;
+        }
+
+        if (
+            string.IsNullOrWhiteSpace(
+                quest.RewardZoneId
+            )
+        )
+        {
+            Debug.LogWarning(
+                quest.QuestName +
+                " has no Reward Zone ID."
+            );
+
+            return;
+        }
+
+        if (
+            CollectibleManager.Instance != null &&
+            CollectibleManager.Instance
+                .IsPickupCollected(
+                    quest.RewardPickupId
+                )
+        )
+        {
+            return;
+        }
+
+        if (spawnedReward != null)
+        {
+            return;
+        }
+
+        CollectiblePickup reward =
+            Instantiate(
+                quest.CollectibleRewardPrefab,
+                rewardSpawnPoint.position,
+                rewardSpawnPoint.rotation
+            );
+
+        reward.Configure(
+            quest.RewardPickupId,
+            quest.RewardZoneId,
+            quest.RewardCollectibleType,
+            quest.RewardAmount
+        );
+
+        spawnedReward =
+            reward.gameObject;
     }
 
     private void StartCompletedDialogue()

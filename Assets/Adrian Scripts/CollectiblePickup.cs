@@ -16,19 +16,69 @@ public class CollectiblePickup : MonoBehaviour
 
     private bool collected;
 
+    public string PickupId =>
+        pickupId;
+
+    public string ZoneId =>
+        zoneId;
+
+    public CollectibleType CollectibleType =>
+        collectibleType;
+
+    public int Amount =>
+        amount;
+
     private void Start()
+    {
+        RefreshCollectedState();
+    }
+
+    public void Configure(
+        string newPickupId,
+        string newZoneId,
+        CollectibleType newCollectibleType,
+        int newAmount
+    )
+    {
+        pickupId =
+            newPickupId;
+
+        zoneId =
+            newZoneId;
+
+        collectibleType =
+            newCollectibleType;
+
+        amount =
+            Mathf.Max(
+                1,
+                newAmount
+            );
+
+        RefreshCollectedState();
+    }
+
+    private void RefreshCollectedState()
     {
         if (
             CollectibleManager.Instance != null &&
-            CollectibleManager.Instance.IsPickupCollected(pickupId)
+            CollectibleManager.Instance
+                .IsPickupCollected(
+                    pickupId
+                )
         )
         {
             collected = true;
-            gameObject.SetActive(false);
+
+            gameObject.SetActive(
+                false
+            );
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(
+        Collider other
+    )
     {
         if (collected)
         {
@@ -60,12 +110,13 @@ public class CollectiblePickup : MonoBehaviour
         }
 
         bool successfullyCollected =
-            CollectibleManager.Instance.CollectPickup(
-                pickupId,
-                zoneId,
-                collectibleType,
-                amount
-            );
+            CollectibleManager.Instance
+                .CollectPickup(
+                    pickupId,
+                    zoneId,
+                    collectibleType,
+                    amount
+                );
 
         if (!successfullyCollected)
         {
@@ -83,7 +134,9 @@ public class CollectiblePickup : MonoBehaviour
             );
         }
 
-        Destroy(gameObject);
+        Destroy(
+            gameObject
+        );
     }
 
     [ContextMenu("Generate New Pickup ID")]
