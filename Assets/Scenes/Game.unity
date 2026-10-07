@@ -36570,6 +36570,10 @@ MonoBehaviour:
   discStack: {fileID: 707613431}
   discSpacing: 1.2
   stackMoveSpeed: 6
+  mapRotateSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  mapRotateVolume: 1
+  mapSwitchSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  mapSwitchVolume: 1
   OnSelectionChanged:
     m_PersistentCalls:
       m_Calls: []
