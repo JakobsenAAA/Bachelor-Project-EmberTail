@@ -19,6 +19,10 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private AudioClip healthRechargeSound;
     [SerializeField, Range(0f, 1f)] private float healthRechargeVolume = 0.8f;
 
+    [Header("Damage Audio")]
+    [SerializeField] private AudioClip damageSound;
+    [SerializeField, Range(0f, 1f)] private float damageVolume = 0.8f;
+
     [Header("Knockback")]
     [SerializeField] private PlayerDamageKnockback damageKnockback;
 
@@ -82,7 +86,7 @@ public class PlayerHealth : MonoBehaviour
             return;
         }
 
-        if (currentHitPoints <= 0)
+        if (currentHitPoints <= 0 || damage <= 0)
         {
             return;
         }
@@ -105,6 +109,8 @@ public class PlayerHealth : MonoBehaviour
                 damageSourcePosition
             );
         }
+
+        PlayDamageSound();
 
         OnHealthChanged.Invoke();
 
@@ -181,6 +187,22 @@ public class PlayerHealth : MonoBehaviour
         UIAudioManager.Instance.PlaySound(
             healthRechargeSound,
             healthRechargeVolume
+        );
+    }
+
+    private void PlayDamageSound()
+    {
+        if (
+            damageSound == null ||
+            UIAudioManager.Instance == null
+        )
+        {
+            return;
+        }
+
+        UIAudioManager.Instance.PlaySound(
+            damageSound,
+            damageVolume
         );
     }
 

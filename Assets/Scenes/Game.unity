@@ -27742,6 +27742,8 @@ MonoBehaviour:
   cinderPickupVolume: 0.5
   healthRechargeSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
   healthRechargeVolume: 0.8
+  damageSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  damageVolume: 1
   damageKnockback: {fileID: 1149413973}
   OnHealthChanged:
     m_PersistentCalls:
@@ -43653,6 +43655,12 @@ MonoBehaviour:
   - {fileID: 1940667527}
   - {fileID: 352102968}
   cinderText: {fileID: 304665211}
+  damageFlashColor: {r: 0.23584908, g: 0, b: 0, a: 1}
+  damageDuration: 0.35
+  damageScale: 1.2
+  healingFlashColor: {r: 0.29735926, g: 1, b: 0.19999999, a: 1}
+  healingDuration: 0.45
+  healingScale: 1.3
 --- !u!114 &1849881485
 MonoBehaviour:
   m_ObjectHideFlags: 0
