@@ -13086,6 +13086,8 @@ MonoBehaviour:
   showCheckpointNotification: 1
   notificationUI: {fileID: 52180314}
   notificationMessage: CHECKPOINT REACHED
+  checkpointSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  checkpointVolume: 0.8
 --- !u!65 &257610777
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -36307,6 +36309,8 @@ MonoBehaviour:
   showCheckpointNotification: 1
   notificationUI: {fileID: 0}
   notificationMessage: CHECKPOINT REACHED
+  checkpointSound: {fileID: 0}
+  checkpointVolume: 0.8
 --- !u!65 &1479126045
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -37754,6 +37758,8 @@ MonoBehaviour:
   showCheckpointNotification: 1
   notificationUI: {fileID: 0}
   notificationMessage: CHECKPOINT REACHED
+  checkpointSound: {fileID: 0}
+  checkpointVolume: 0.8
 --- !u!65 &1583677420
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -14,6 +15,14 @@ public class MainMenuBurnGroup : MonoBehaviour
     [SerializeField] private float textFadeDuration = 0.8f;
     [SerializeField] private float textFadeDelay = 0.15f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip burnSound;
+    [SerializeField, Range(0f, 1f)] private float burnVolume = 0.8f;
+    [SerializeField, Min(0f)] private float soundDuration = 1.5f;
+    [SerializeField, Min(0f)] private float fadeInDuration = 0.2f;
+    [SerializeField, Min(0f)] private float fadeOutDuration = 0.4f;
+    [SerializeField] private bool loopSound = true;
+
     private Coroutine burnCoroutine;
 
     public void Burn()
@@ -23,6 +32,8 @@ public class MainMenuBurnGroup : MonoBehaviour
             return;
         }
 
+        PlayBurnSound();
+
         for (int i = 0; i < burnEffects.Length; i++)
         {
             if (burnEffects[i] != null)
@@ -31,20 +42,52 @@ public class MainMenuBurnGroup : MonoBehaviour
             }
         }
 
-        burnCoroutine =
-            StartCoroutine(
-                FadeTextRoutine()
-            );
+        burnCoroutine = StartCoroutine(
+            FadeTextRoutine()
+        );
+    }
+
+    private void PlayBurnSound()
+    {
+        if (burnSound == null || soundDuration <= 0f)
+        {
+            return;
+        }
+
+        GameObject audioObject = new GameObject(
+            "MainMenuBurnAudio"
+        );
+
+        DontDestroyOnLoad(audioObject);
+
+        AudioSource source =
+            audioObject.AddComponent<AudioSource>();
+
+        source.playOnAwake = false;
+        source.loop = loopSound;
+        source.spatialBlend = 0f;
+        source.clip = burnSound;
+        source.volume = 0f;
+
+        source.Play();
+
+        MainMenuBurnAudioFade fade =
+            audioObject.AddComponent<MainMenuBurnAudioFade>();
+
+        fade.Initialize(
+            source,
+            burnVolume,
+            soundDuration,
+            fadeInDuration,
+            fadeOutDuration
+        );
     }
 
     public void ResetBurn()
     {
         if (burnCoroutine != null)
         {
-            StopCoroutine(
-                burnCoroutine
-            );
-
+            StopCoroutine(burnCoroutine);
             burnCoroutine = null;
         }
 
@@ -63,13 +106,9 @@ public class MainMenuBurnGroup : MonoBehaviour
                 continue;
             }
 
-            Color color =
-                textElements[i].color;
-
+            Color color = textElements[i].color;
             color.a = 1f;
-
-            textElements[i].color =
-                color;
+            textElements[i].color = color;
         }
     }
 
@@ -89,8 +128,7 @@ public class MainMenuBurnGroup : MonoBehaviour
         {
             if (textElements[i] != null)
             {
-                startingAlpha[i] =
-                    textElements[i].color.a;
+                startingAlpha[i] = textElements[i].color.a;
             }
         }
 
@@ -98,14 +136,11 @@ public class MainMenuBurnGroup : MonoBehaviour
 
         while (timer < textFadeDuration)
         {
-            timer +=
-                Time.unscaledDeltaTime;
+            timer += Time.unscaledDeltaTime;
 
-            float progress =
-                Mathf.Clamp01(
-                    timer /
-                    textFadeDuration
-                );
+            float progress = Mathf.Clamp01(
+                timer / textFadeDuration
+            );
 
             for (int i = 0; i < textElements.Length; i++)
             {
@@ -114,18 +149,15 @@ public class MainMenuBurnGroup : MonoBehaviour
                     continue;
                 }
 
-                Color color =
-                    textElements[i].color;
+                Color color = textElements[i].color;
 
-                color.a =
-                    Mathf.Lerp(
-                        startingAlpha[i],
-                        0f,
-                        progress
-                    );
+                color.a = Mathf.Lerp(
+                    startingAlpha[i],
+                    0f,
+                    progress
+                );
 
-                textElements[i].color =
-                    color;
+                textElements[i].color = color;
             }
 
             yield return null;
@@ -138,13 +170,9 @@ public class MainMenuBurnGroup : MonoBehaviour
                 continue;
             }
 
-            Color color =
-                textElements[i].color;
-
+            Color color = textElements[i].color;
             color.a = 0f;
-
-            textElements[i].color =
-                color;
+            textElements[i].color = color;
         }
 
         burnCoroutine = null;
