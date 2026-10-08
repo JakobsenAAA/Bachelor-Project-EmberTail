@@ -1,3 +1,4 @@
+
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,10 @@ public class QuestNotificationUI : MonoBehaviour
     [SerializeField] private Sprite objectiveCompleteImage;
     [SerializeField] private Sprite questCompleteImage;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip questCompleteSound;
+    [SerializeField, Range(0f, 1f)] private float questCompleteVolume = 0.8f;
+
     [Header("Timing")]
     [SerializeField] private float fadeInDuration = 0.25f;
     [SerializeField] private float visibleDuration = 2f;
@@ -26,10 +31,7 @@ public class QuestNotificationUI : MonoBehaviour
 
     private void Awake()
     {
-        if (
-            Instance != null &&
-            Instance != this
-        )
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -48,9 +50,7 @@ public class QuestNotificationUI : MonoBehaviour
         }
     }
 
-    public void ShowObjectiveComplete(
-        string questName
-    )
+    public void ShowObjectiveComplete(string questName)
     {
         ShowNotification(
             "OBJECTIVE COMPLETE",
@@ -59,15 +59,24 @@ public class QuestNotificationUI : MonoBehaviour
         );
     }
 
-    public void ShowQuestComplete(
-        string questName
-    )
+    public void ShowQuestComplete(string questName)
     {
         ShowNotification(
             "QUEST COMPLETE",
             questName,
             questCompleteImage
         );
+
+        if (
+            questCompleteSound != null &&
+            UIAudioManager.Instance != null
+        )
+        {
+            UIAudioManager.Instance.PlaySound(
+                questCompleteSound,
+                questCompleteVolume
+            );
+        }
     }
 
     private void ShowNotification(
@@ -78,36 +87,28 @@ public class QuestNotificationUI : MonoBehaviour
     {
         if (notificationCoroutine != null)
         {
-            StopCoroutine(
-                notificationCoroutine
-            );
+            StopCoroutine(notificationCoroutine);
         }
 
         if (titleText != null)
         {
-            titleText.text =
-                title;
+            titleText.text = title;
         }
 
         if (questNameText != null)
         {
-            questNameText.text =
-                questName;
+            questNameText.text = questName;
         }
 
         if (notificationImage != null)
         {
-            notificationImage.sprite =
-                image;
-
-            notificationImage.enabled =
-                image != null;
+            notificationImage.sprite = image;
+            notificationImage.enabled = image != null;
         }
 
-        notificationCoroutine =
-            StartCoroutine(
-                ShowNotificationRoutine()
-            );
+        notificationCoroutine = StartCoroutine(
+            ShowNotificationRoutine()
+        );
     }
 
     private IEnumerator ShowNotificationRoutine()
@@ -121,50 +122,34 @@ public class QuestNotificationUI : MonoBehaviour
 
         float timer = 0f;
 
-        while (
-            timer <
-            fadeInDuration
-        )
+        while (timer < fadeInDuration)
         {
-            timer +=
-                Time.unscaledDeltaTime;
+            timer += Time.unscaledDeltaTime;
 
             notificationGroup.alpha =
                 fadeInDuration <= 0f
                     ? 1f
-                    : Mathf.Clamp01(
-                        timer /
-                        fadeInDuration
-                    );
+                    : Mathf.Clamp01(timer / fadeInDuration);
 
             yield return null;
         }
 
         notificationGroup.alpha = 1f;
 
-        yield return
-            new WaitForSecondsRealtime(
-                visibleDuration
-            );
+        yield return new WaitForSecondsRealtime(
+            visibleDuration
+        );
 
         timer = 0f;
 
-        while (
-            timer <
-            fadeOutDuration
-        )
+        while (timer < fadeOutDuration)
         {
-            timer +=
-                Time.unscaledDeltaTime;
+            timer += Time.unscaledDeltaTime;
 
             notificationGroup.alpha =
                 fadeOutDuration <= 0f
                     ? 0f
-                    : 1f -
-                    Mathf.Clamp01(
-                        timer /
-                        fadeOutDuration
-                    );
+                    : 1f - Mathf.Clamp01(timer / fadeOutDuration);
 
             yield return null;
         }

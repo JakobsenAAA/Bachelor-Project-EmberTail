@@ -1524,6 +1524,8 @@ MonoBehaviour:
   acceptHighlight: {fileID: 751813890}
   declineHighlight: {fileID: 1061910267}
   inputDelay: 0.15
+  questAcceptedSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  questAcceptedVolume: 0.7
 --- !u!4 &129340759
 Transform:
   m_ObjectHideFlags: 0
@@ -51567,6 +51569,8 @@ MonoBehaviour:
   notificationImage: {fileID: 0}
   objectiveCompleteImage: {fileID: 21300000, guid: 7ba2e6aea22c2084885cee8e01450b75, type: 3}
   questCompleteImage: {fileID: 21300000, guid: 74e5db195de299744b5779b8d96dd613, type: 3}
+  questCompleteSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  questCompleteVolume: 0.8
   fadeInDuration: 0.25
   visibleDuration: 3
   fadeOutDuration: 0.5

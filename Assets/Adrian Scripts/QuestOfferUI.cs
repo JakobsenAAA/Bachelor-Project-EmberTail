@@ -1,3 +1,4 @@
+
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -20,23 +21,21 @@ public class QuestOfferUI : MonoBehaviour
     [Header("Input")]
     [SerializeField] private float inputDelay = 0.15f;
 
-    private QuestData currentQuest;
+    [Header("Audio")]
+    [SerializeField] private AudioClip questAcceptedSound;
+    [SerializeField, Range(0f, 1f)] private float questAcceptedVolume = 0.7f;
 
+    private QuestData currentQuest;
     private bool offerActive;
     private bool inputEnabled;
     private int selectedOption;
-
     private Coroutine inputDelayCoroutine;
 
-    public bool OfferActive =>
-        offerActive;
+    public bool OfferActive => offerActive;
 
     private void Awake()
     {
-        if (
-            Instance != null &&
-            Instance != this
-        )
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -57,16 +56,12 @@ public class QuestOfferUI : MonoBehaviour
 
     private void Update()
     {
-        if (
-            !offerActive ||
-            !inputEnabled
-        )
+        if (!offerActive || !inputEnabled)
         {
             return;
         }
 
-        Keyboard keyboard =
-            Keyboard.current;
+        Keyboard keyboard = Keyboard.current;
 
         if (keyboard == null)
         {
@@ -76,14 +71,12 @@ public class QuestOfferUI : MonoBehaviour
         if (keyboard.aKey.wasPressedThisFrame)
         {
             selectedOption = 0;
-
             UpdateSelectionVisuals();
         }
 
         if (keyboard.dKey.wasPressedThisFrame)
         {
             selectedOption = 1;
-
             UpdateSelectionVisuals();
         }
 
@@ -93,9 +86,7 @@ public class QuestOfferUI : MonoBehaviour
         }
     }
 
-    public void ShowQuest(
-        QuestData quest
-    )
+    public void ShowQuest(QuestData quest)
     {
         if (quest == null)
         {
@@ -103,21 +94,18 @@ public class QuestOfferUI : MonoBehaviour
         }
 
         currentQuest = quest;
-
         selectedOption = 0;
         offerActive = true;
         inputEnabled = false;
 
         if (questNameText != null)
         {
-            questNameText.text =
-                quest.QuestName;
+            questNameText.text = quest.QuestName;
         }
 
         if (questDescriptionText != null)
         {
-            questDescriptionText.text =
-                quest.QuestDescription;
+            questDescriptionText.text = quest.QuestDescription;
         }
 
         if (questOfferPanel != null)
@@ -125,32 +113,26 @@ public class QuestOfferUI : MonoBehaviour
             questOfferPanel.SetActive(true);
         }
 
-        Cursor.lockState =
-            CursorLockMode.Locked;
-
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         UpdateSelectionVisuals();
 
         if (inputDelayCoroutine != null)
         {
-            StopCoroutine(
-                inputDelayCoroutine
-            );
+            StopCoroutine(inputDelayCoroutine);
         }
 
-        inputDelayCoroutine =
-            StartCoroutine(
-                EnableInputAfterDelay()
-            );
+        inputDelayCoroutine = StartCoroutine(
+            EnableInputAfterDelay()
+        );
     }
 
     private IEnumerator EnableInputAfterDelay()
     {
-        yield return
-            new WaitForSecondsRealtime(
-                inputDelay
-            );
+        yield return new WaitForSecondsRealtime(
+            inputDelay
+        );
 
         inputEnabled = true;
         inputDelayCoroutine = null;
@@ -158,10 +140,7 @@ public class QuestOfferUI : MonoBehaviour
 
     private void ConfirmSelection()
     {
-        if (
-            !offerActive ||
-            !inputEnabled
-        )
+        if (!offerActive || !inputEnabled)
         {
             return;
         }
@@ -185,10 +164,18 @@ public class QuestOfferUI : MonoBehaviour
             QuestManager.Instance != null
         )
         {
-            QuestManager.Instance
-                .AcceptQuest(
-                    currentQuest
+            QuestManager.Instance.AcceptQuest(currentQuest);
+
+            if (
+                questAcceptedSound != null &&
+                UIAudioManager.Instance != null
+            )
+            {
+                UIAudioManager.Instance.PlaySound(
+                    questAcceptedSound,
+                    questAcceptedVolume
                 );
+            }
         }
 
         CloseQuestOffer();
@@ -207,10 +194,7 @@ public class QuestOfferUI : MonoBehaviour
 
         if (inputDelayCoroutine != null)
         {
-            StopCoroutine(
-                inputDelayCoroutine
-            );
-
+            StopCoroutine(inputDelayCoroutine);
             inputDelayCoroutine = null;
         }
 
@@ -223,8 +207,7 @@ public class QuestOfferUI : MonoBehaviour
 
         if (DialogueManager.Instance != null)
         {
-            DialogueManager.Instance
-                .ReleaseGameplayLock();
+            DialogueManager.Instance.ReleaseGameplayLock();
         }
     }
 
@@ -233,15 +216,13 @@ public class QuestOfferUI : MonoBehaviour
         if (acceptHighlight != null)
         {
             acceptHighlight.enabled =
-                offerActive &&
-                selectedOption == 0;
+                offerActive && selectedOption == 0;
         }
 
         if (declineHighlight != null)
         {
             declineHighlight.enabled =
-                offerActive &&
-                selectedOption == 1;
+                offerActive && selectedOption == 1;
         }
     }
 }
