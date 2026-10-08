@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using TMPro;
@@ -15,6 +16,14 @@ public class DialogueManager : MonoBehaviour
     [Header("Typewriter")]
     [SerializeField] private float characterDelay = 0.03f;
 
+    [Header("Dialogue Audio")]
+    [SerializeField] private AudioSource dialogueAudioSource;
+    [SerializeField] private AudioClip dialogueTypingSound;
+    [SerializeField, Range(0f, 1f)] private float dialogueTypingVolume = 0.5f;
+    [SerializeField, Min(1)] private int charactersPerSound = 3;
+    [SerializeField] private float minimumPitch = 0.9f;
+    [SerializeField] private float maximumPitch = 1.1f;
+
     [Header("Player")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private PlayerInteraction playerInteraction;
@@ -24,23 +33,16 @@ public class DialogueManager : MonoBehaviour
 
     private DialogueData currentDialogue;
     private int currentLineIndex;
-
     private Coroutine typewriterCoroutine;
-
     private bool dialogueActive;
     private bool lineTyping;
-
     private Action dialogueCompletedAction;
 
-    public bool DialogueActive =>
-        dialogueActive;
+    public bool DialogueActive => dialogueActive;
 
     private void Awake()
     {
-        if (
-            Instance != null &&
-            Instance != this
-        )
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -55,16 +57,18 @@ public class DialogueManager : MonoBehaviour
         {
             dialoguePanel.SetActive(false);
         }
+
+        if (dialogueAudioSource != null)
+        {
+            dialogueAudioSource.playOnAwake = false;
+            dialogueAudioSource.loop = false;
+            dialogueAudioSource.spatialBlend = 0f;
+        }
     }
 
-    public void StartDialogue(
-        DialogueData dialogue
-    )
+    public void StartDialogue(DialogueData dialogue)
     {
-        StartDialogue(
-            dialogue,
-            null
-        );
+        StartDialogue(dialogue, null);
     }
 
     public void StartDialogue(
@@ -88,9 +92,7 @@ public class DialogueManager : MonoBehaviour
         currentDialogue = dialogue;
         currentLineIndex = 0;
         dialogueActive = true;
-
-        dialogueCompletedAction =
-            completedAction;
+        dialogueCompletedAction = completedAction;
 
         if (dialoguePanel != null)
         {
@@ -99,12 +101,10 @@ public class DialogueManager : MonoBehaviour
 
         if (speakerNameText != null)
         {
-            speakerNameText.text =
-                currentDialogue.SpeakerName;
+            speakerNameText.text = currentDialogue.SpeakerName;
         }
 
         LockGameplay();
-
         ShowCurrentLine();
     }
 
@@ -139,48 +139,61 @@ public class DialogueManager : MonoBehaviour
     {
         if (typewriterCoroutine != null)
         {
-            StopCoroutine(
-                typewriterCoroutine
-            );
+            StopCoroutine(typewriterCoroutine);
         }
 
-        typewriterCoroutine =
-            StartCoroutine(
-                TypeLine(
-                    currentDialogue
-                        .DialogueLines[
-                            currentLineIndex
-                        ]
-                )
-            );
+        typewriterCoroutine = StartCoroutine(
+            TypeLine(
+                currentDialogue.DialogueLines[currentLineIndex]
+            )
+        );
     }
 
-    private IEnumerator TypeLine(
-        string line
-    )
+    private IEnumerator TypeLine(string line)
     {
         lineTyping = true;
 
         if (dialogueText != null)
         {
-            dialogueText.text =
-                string.Empty;
+            dialogueText.text = string.Empty;
         }
+
+        if (string.IsNullOrEmpty(line))
+        {
+            lineTyping = false;
+            typewriterCoroutine = null;
+            yield break;
+        }
+
+        int audibleCharacterCount = 0;
 
         for (int i = 0; i < line.Length; i++)
         {
+            char character = line[i];
+
             if (dialogueText != null)
             {
-                dialogueText.text +=
-                    line[i];
+                dialogueText.text += character;
+            }
+
+            if (char.IsLetterOrDigit(character))
+            {
+                audibleCharacterCount++;
+
+                if (
+                    audibleCharacterCount %
+                    Mathf.Max(1, charactersPerSound) == 0
+                )
+                {
+                    PlayTypingSound();
+                }
             }
 
             if (characterDelay > 0f)
             {
-                yield return
-                    new WaitForSecondsRealtime(
-                        characterDelay
-                    );
+                yield return new WaitForSecondsRealtime(
+                    characterDelay
+                );
             }
             else
             {
@@ -192,14 +205,42 @@ public class DialogueManager : MonoBehaviour
         typewriterCoroutine = null;
     }
 
+    private void PlayTypingSound()
+    {
+        if (
+            dialogueAudioSource == null ||
+            dialogueTypingSound == null
+        )
+        {
+            return;
+        }
+
+        float lowPitch = Mathf.Min(
+            minimumPitch,
+            maximumPitch
+        );
+
+        float highPitch = Mathf.Max(
+            minimumPitch,
+            maximumPitch
+        );
+
+        dialogueAudioSource.pitch = UnityEngine.Random.Range(
+            Mathf.Max(0.01f, lowPitch),
+            Mathf.Max(0.01f, highPitch)
+        );
+
+        dialogueAudioSource.PlayOneShot(
+            dialogueTypingSound,
+            dialogueTypingVolume
+        );
+    }
+
     private void FinishCurrentLine()
     {
         if (typewriterCoroutine != null)
         {
-            StopCoroutine(
-                typewriterCoroutine
-            );
-
+            StopCoroutine(typewriterCoroutine);
             typewriterCoroutine = null;
         }
 
@@ -209,9 +250,12 @@ public class DialogueManager : MonoBehaviour
         )
         {
             dialogueText.text =
-                currentDialogue.DialogueLines[
-                    currentLineIndex
-                ];
+                currentDialogue.DialogueLines[currentLineIndex];
+        }
+
+        if (dialogueAudioSource != null)
+        {
+            dialogueAudioSource.Stop();
         }
 
         lineTyping = false;
@@ -221,16 +265,17 @@ public class DialogueManager : MonoBehaviour
     {
         if (typewriterCoroutine != null)
         {
-            StopCoroutine(
-                typewriterCoroutine
-            );
-
+            StopCoroutine(typewriterCoroutine);
             typewriterCoroutine = null;
+        }
+
+        if (dialogueAudioSource != null)
+        {
+            dialogueAudioSource.Stop();
         }
 
         dialogueActive = false;
         lineTyping = false;
-
         currentDialogue = null;
         currentLineIndex = 0;
 
@@ -239,9 +284,7 @@ public class DialogueManager : MonoBehaviour
             dialoguePanel.SetActive(false);
         }
 
-        Action completedAction =
-            dialogueCompletedAction;
-
+        Action completedAction = dialogueCompletedAction;
         dialogueCompletedAction = null;
 
         if (completedAction != null)
@@ -263,20 +306,17 @@ public class DialogueManager : MonoBehaviour
     {
         if (playerController != null)
         {
-            playerController
-                .SetGameplayInputEnabled(false);
+            playerController.SetGameplayInputEnabled(false);
         }
 
         if (thirdPersonCamera != null)
         {
-            thirdPersonCamera
-                .SetCameraInputEnabled(false);
+            thirdPersonCamera.SetCameraInputEnabled(false);
         }
 
         if (playerInteraction != null)
         {
-            playerInteraction
-                .SetInteractionEnabled(false);
+            playerInteraction.SetInteractionEnabled(false);
         }
     }
 
@@ -284,20 +324,17 @@ public class DialogueManager : MonoBehaviour
     {
         if (playerController != null)
         {
-            playerController
-                .SetGameplayInputEnabled(true);
+            playerController.SetGameplayInputEnabled(true);
         }
 
         if (thirdPersonCamera != null)
         {
-            thirdPersonCamera
-                .SetCameraInputEnabled(true);
+            thirdPersonCamera.SetCameraInputEnabled(true);
         }
 
         if (playerInteraction != null)
         {
-            playerInteraction
-                .SetInteractionEnabled(true);
+            playerInteraction.SetInteractionEnabled(true);
         }
     }
 }
