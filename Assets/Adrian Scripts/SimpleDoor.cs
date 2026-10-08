@@ -1,3 +1,4 @@
+
 using System.Collections;
 using UnityEngine;
 
@@ -8,21 +9,17 @@ public class SimpleDoor : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private Vector3 openOffset =
-        new Vector3(
-            0f,
-            3f,
-            0f
-        );
+        new Vector3(0f, 3f, 0f);
 
     [SerializeField] private float openDuration = 1f;
 
     [SerializeField] private AnimationCurve openCurve =
-        AnimationCurve.EaseInOut(
-            0f,
-            0f,
-            1f,
-            1f
-        );
+        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource doorAudioSource;
+    [SerializeField] private AudioClip doorOpeningSound;
+    [SerializeField, Range(0f, 1f)] private float doorOpeningVolume = 0.8f;
 
     private Vector3 closedPosition;
     private Vector3 openPosition;
@@ -36,12 +33,8 @@ public class SimpleDoor : MonoBehaviour
             door = transform;
         }
 
-        closedPosition =
-            door.localPosition;
-
-        openPosition =
-            closedPosition +
-            openOffset;
+        closedPosition = door.localPosition;
+        openPosition = closedPosition + openOffset;
     }
 
     public void Open()
@@ -53,65 +46,61 @@ public class SimpleDoor : MonoBehaviour
 
         opened = true;
 
+        PlayOpeningSound();
+
         if (openCoroutine != null)
         {
-            StopCoroutine(
-                openCoroutine
-            );
+            StopCoroutine(openCoroutine);
         }
 
-        openCoroutine =
-            StartCoroutine(
-                OpenRoutine()
-            );
+        openCoroutine = StartCoroutine(OpenRoutine());
+    }
+
+    private void PlayOpeningSound()
+    {
+        if (doorAudioSource == null || doorOpeningSound == null)
+        {
+            return;
+        }
+
+        doorAudioSource.PlayOneShot(
+            doorOpeningSound,
+            doorOpeningVolume
+        );
     }
 
     private IEnumerator OpenRoutine()
     {
-        Vector3 startingPosition =
-            door.localPosition;
-
+        Vector3 startingPosition = door.localPosition;
         float timer = 0f;
 
         if (openDuration <= 0f)
         {
-            door.localPosition =
-                openPosition;
-
+            door.localPosition = openPosition;
             openCoroutine = null;
-
             yield break;
         }
 
         while (timer < openDuration)
         {
-            timer +=
-                Time.deltaTime;
+            timer += Time.deltaTime;
 
-            float progress =
-                Mathf.Clamp01(
-                    timer /
-                    openDuration
-                );
+            float progress = Mathf.Clamp01(
+                timer / openDuration
+            );
 
-            float curvedProgress =
-                openCurve.Evaluate(
-                    progress
-                );
+            float curvedProgress = openCurve.Evaluate(progress);
 
-            door.localPosition =
-                Vector3.Lerp(
-                    startingPosition,
-                    openPosition,
-                    curvedProgress
-                );
+            door.localPosition = Vector3.Lerp(
+                startingPosition,
+                openPosition,
+                curvedProgress
+            );
 
             yield return null;
         }
 
-        door.localPosition =
-            openPosition;
-
+        door.localPosition = openPosition;
         openCoroutine = null;
     }
 }
