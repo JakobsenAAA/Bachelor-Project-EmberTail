@@ -27738,6 +27738,10 @@ MonoBehaviour:
   damageCooldown: 1
   respawnInvulnerabilityTime: 5
   cindersNeededForHitPoint: 50
+  cinderPickupSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  cinderPickupVolume: 0.5
+  healthRechargeSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  healthRechargeVolume: 0.8
   damageKnockback: {fileID: 1149413973}
   OnHealthChanged:
     m_PersistentCalls:

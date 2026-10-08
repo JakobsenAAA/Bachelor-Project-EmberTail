@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,6 +12,12 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("Cinders")]
     [SerializeField] private int cindersNeededForHitPoint = 50;
+
+    [Header("Cinder Audio")]
+    [SerializeField] private AudioClip cinderPickupSound;
+    [SerializeField, Range(0f, 1f)] private float cinderPickupVolume = 0.5f;
+    [SerializeField] private AudioClip healthRechargeSound;
+    [SerializeField, Range(0f, 1f)] private float healthRechargeVolume = 0.8f;
 
     [Header("Knockback")]
     [SerializeField] private PlayerDamageKnockback damageKnockback;
@@ -116,6 +123,8 @@ public class PlayerHealth : MonoBehaviour
 
         OnCinderCollected.Invoke();
 
+        PlayCinderPickupSound();
+
         currentCinders += amount;
 
         while (
@@ -123,12 +132,13 @@ public class PlayerHealth : MonoBehaviour
             currentHitPoints < maxHitPoints
         )
         {
-            currentCinders -=
-                cindersNeededForHitPoint;
+            currentCinders -= cindersNeededForHitPoint;
 
             currentHitPoints++;
 
             OnHealthChanged.Invoke();
+
+            PlayHealthRechargeSound();
         }
 
         if (currentHitPoints >= maxHitPoints)
@@ -140,6 +150,38 @@ public class PlayerHealth : MonoBehaviour
         }
 
         OnCindersChanged.Invoke();
+    }
+
+    private void PlayCinderPickupSound()
+    {
+        if (
+            cinderPickupSound == null ||
+            UIAudioManager.Instance == null
+        )
+        {
+            return;
+        }
+
+        UIAudioManager.Instance.PlaySound(
+            cinderPickupSound,
+            cinderPickupVolume
+        );
+    }
+
+    private void PlayHealthRechargeSound()
+    {
+        if (
+            healthRechargeSound == null ||
+            UIAudioManager.Instance == null
+        )
+        {
+            return;
+        }
+
+        UIAudioManager.Instance.PlaySound(
+            healthRechargeSound,
+            healthRechargeVolume
+        );
     }
 
     public void RestoreFullHealth()
