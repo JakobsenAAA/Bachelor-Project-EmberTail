@@ -1,14 +1,12 @@
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InventoryItemPickup :
-    MonoBehaviour,
-    IInteractable
+public class InventoryItemPickup : MonoBehaviour, IInteractable
 {
-    private static readonly HashSet<string>
-        collectedPickupIds =
-            new HashSet<string>();
+    private static readonly HashSet<string> collectedPickupIds =
+        new HashSet<string>();
 
     [Header("Identity")]
     [SerializeField] private string pickupId;
@@ -18,13 +16,18 @@ public class InventoryItemPickup :
     [SerializeField] private int amount = 1;
 
     [Header("Interaction")]
-    [SerializeField] private string interactionPrompt =
-        "Pick Up";
+    [SerializeField] private string interactionPrompt = "Pick Up";
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip pickupSound;
+    [SerializeField, Range(0f, 1f)] private float pickupVolume = 0.7f;
+    [SerializeField] private bool randomizePitch = true;
+    [SerializeField, Range(0.5f, 2f)] private float minimumPitch = 0.9f;
+    [SerializeField, Range(0.5f, 2f)] private float maximumPitch = 1.1f;
 
     private bool collected;
 
-    public string InteractionPrompt =>
-        interactionPrompt;
+    public string InteractionPrompt => interactionPrompt;
 
     public bool CanInteract =>
         !collected &&
@@ -43,15 +46,10 @@ public class InventoryItemPickup :
             return;
         }
 
-        if (
-            string.IsNullOrWhiteSpace(
-                pickupId
-            )
-        )
+        if (string.IsNullOrWhiteSpace(pickupId))
         {
             Debug.LogWarning(
-                gameObject.name +
-                " has no Inventory Pickup ID."
+                gameObject.name + " has no Inventory Pickup ID."
             );
 
             return;
@@ -69,28 +67,61 @@ public class InventoryItemPickup :
             return;
         }
 
-        inventory.AddItem(
-            item,
-            amount
-        );
+        inventory.AddItem(item, amount);
 
-        collectedPickupIds.Add(
-            pickupId
-        );
-
+        collectedPickupIds.Add(pickupId);
         collected = true;
 
-        gameObject.SetActive(
-            false
-        );
+        PlayPickupSound();
+
+        gameObject.SetActive(false);
     }
 
-    public static List<string>
-        CreateCollectedPickupSaveData()
+    private void PlayPickupSound()
     {
-        return new List<string>(
-            collectedPickupIds
-        );
+        if (pickupSound == null)
+        {
+            return;
+        }
+
+        if (randomizePitch)
+        {
+            float pitch = UnityEngine.Random.Range(
+                Mathf.Min(minimumPitch, maximumPitch),
+                Mathf.Max(minimumPitch, maximumPitch)
+            );
+
+            GameObject audioObject = new GameObject(
+                "InventoryPickupAudio"
+            );
+
+            AudioSource source =
+                audioObject.AddComponent<AudioSource>();
+
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.volume = pickupVolume;
+            source.pitch = pitch;
+            source.clip = pickupSound;
+            source.Play();
+
+            Destroy(
+                audioObject,
+                pickupSound.length / Mathf.Max(0.01f, pitch) + 0.1f
+            );
+        }
+        else if (UIAudioManager.Instance != null)
+        {
+            UIAudioManager.Instance.PlaySound(
+                pickupSound,
+                pickupVolume
+            );
+        }
+    }
+
+    public static List<string> CreateCollectedPickupSaveData()
+    {
+        return new List<string>(collectedPickupIds);
     }
 
     public static void RestoreCollectedPickupSaveData(
@@ -101,27 +132,16 @@ public class InventoryItemPickup :
 
         if (savedPickupIds != null)
         {
-            for (
-                int i = 0;
-                i < savedPickupIds.Count;
-                i++
-            )
+            for (int i = 0; i < savedPickupIds.Count; i++)
             {
-                string savedId =
-                    savedPickupIds[i];
+                string savedId = savedPickupIds[i];
 
-                if (
-                    string.IsNullOrWhiteSpace(
-                        savedId
-                    )
-                )
+                if (string.IsNullOrWhiteSpace(savedId))
                 {
                     continue;
                 }
 
-                collectedPickupIds.Add(
-                    savedId
-                );
+                collectedPickupIds.Add(savedId);
             }
         }
 
@@ -131,14 +151,9 @@ public class InventoryItemPickup :
                 FindObjectsSortMode.None
             );
 
-        for (
-            int i = 0;
-            i < pickups.Length;
-            i++
-        )
+        for (int i = 0; i < pickups.Length; i++)
         {
-            pickups[i]
-                .RefreshCollectedState();
+            pickups[i].RefreshCollectedState();
         }
     }
 
@@ -149,26 +164,15 @@ public class InventoryItemPickup :
 
     private void RefreshCollectedState()
     {
-        if (
-            string.IsNullOrWhiteSpace(
-                pickupId
-            )
-        )
+        if (string.IsNullOrWhiteSpace(pickupId))
         {
             return;
         }
 
-        if (
-            collectedPickupIds.Contains(
-                pickupId
-            )
-        )
+        if (collectedPickupIds.Contains(pickupId))
         {
             collected = true;
-
-            gameObject.SetActive(
-                false
-            );
+            gameObject.SetActive(false);
         }
         else
         {
@@ -179,7 +183,6 @@ public class InventoryItemPickup :
     [ContextMenu("Generate New Pickup ID")]
     private void GenerateNewPickupId()
     {
-        pickupId =
-            Guid.NewGuid().ToString();
+        pickupId = Guid.NewGuid().ToString();
     }
 }

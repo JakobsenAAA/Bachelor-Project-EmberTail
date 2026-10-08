@@ -17293,6 +17293,11 @@ MonoBehaviour:
   collectibleType: 1
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &485391791
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18236,6 +18241,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &550850080
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18941,6 +18951,11 @@ MonoBehaviour:
   collectibleType: 1
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &607685970
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -20369,6 +20384,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &693391091
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -20738,6 +20758,11 @@ MonoBehaviour:
   collectibleType: 2
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &703580909
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -22309,6 +22334,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &838464177
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -22854,6 +22884,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &873345442
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -23593,6 +23628,11 @@ MonoBehaviour:
   collectibleType: 1
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &919312072
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24067,6 +24107,11 @@ MonoBehaviour:
   collectibleType: 0
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &970579316
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24452,6 +24497,11 @@ MonoBehaviour:
   collectibleType: 0
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1008868844
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -25306,6 +25356,11 @@ MonoBehaviour:
   collectibleType: 0
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1073146827
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26159,6 +26214,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1117660921
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26434,6 +26494,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1145823483
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -32956,6 +33021,11 @@ MonoBehaviour:
   collectibleType: 1
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 033321db3d2422d42b1923c903db295b, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1258380356
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34629,6 +34699,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1363503856
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -35675,6 +35750,11 @@ MonoBehaviour:
   collectibleType: 0
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 98cb51b4ae7223041adeafeda3290082, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1454758169
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -38279,6 +38359,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1653906378
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -40968,6 +41053,11 @@ MonoBehaviour:
   collectibleType: 2
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1811413855
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -42918,6 +43008,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 8300000, guid: 31f63f3a2c401044d843581305b34a00, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1884298414
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -43160,6 +43255,11 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: cde17dbeed8f40c438a6c71c49905764, type: 2}
   amount: 1
   interactionPrompt: Pick Up Mushroom
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &1908263318
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -44167,6 +44267,11 @@ MonoBehaviour:
   collectibleType: 2
   amount: 1
   collectEffect: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  pickupVolume: 0.7
+  randomizePitch: 1
+  minimumPitch: 0.9
+  maximumPitch: 1.1
 --- !u!65 &2025374807
 BoxCollider:
   m_ObjectHideFlags: 0

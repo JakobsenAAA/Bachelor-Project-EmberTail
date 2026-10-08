@@ -1,3 +1,4 @@
+
 using System;
 using UnityEngine;
 
@@ -14,19 +15,19 @@ public class CollectiblePickup : MonoBehaviour
     [Header("Feedback")]
     [SerializeField] private GameObject collectEffect;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip pickupSound;
+    [SerializeField, Range(0f, 1f)] private float pickupVolume = 0.7f;
+    [SerializeField] private bool randomizePitch = true;
+    [SerializeField, Range(0.5f, 2f)] private float minimumPitch = 0.9f;
+    [SerializeField, Range(0.5f, 2f)] private float maximumPitch = 1.1f;
+
     private bool collected;
 
-    public string PickupId =>
-        pickupId;
-
-    public string ZoneId =>
-        zoneId;
-
-    public CollectibleType CollectibleType =>
-        collectibleType;
-
-    public int Amount =>
-        amount;
+    public string PickupId => pickupId;
+    public string ZoneId => zoneId;
+    public CollectibleType CollectibleType => collectibleType;
+    public int Amount => amount;
 
     private void Start()
     {
@@ -40,20 +41,10 @@ public class CollectiblePickup : MonoBehaviour
         int newAmount
     )
     {
-        pickupId =
-            newPickupId;
-
-        zoneId =
-            newZoneId;
-
-        collectibleType =
-            newCollectibleType;
-
-        amount =
-            Mathf.Max(
-                1,
-                newAmount
-            );
+        pickupId = newPickupId;
+        zoneId = newZoneId;
+        collectibleType = newCollectibleType;
+        amount = Mathf.Max(1, newAmount);
 
         RefreshCollectedState();
     }
@@ -62,23 +53,15 @@ public class CollectiblePickup : MonoBehaviour
     {
         if (
             CollectibleManager.Instance != null &&
-            CollectibleManager.Instance
-                .IsPickupCollected(
-                    pickupId
-                )
+            CollectibleManager.Instance.IsPickupCollected(pickupId)
         )
         {
             collected = true;
-
-            gameObject.SetActive(
-                false
-            );
+            gameObject.SetActive(false);
         }
     }
 
-    private void OnTriggerEnter(
-        Collider other
-    )
+    private void OnTriggerEnter(Collider other)
     {
         if (collected)
         {
@@ -110,13 +93,12 @@ public class CollectiblePickup : MonoBehaviour
         }
 
         bool successfullyCollected =
-            CollectibleManager.Instance
-                .CollectPickup(
-                    pickupId,
-                    zoneId,
-                    collectibleType,
-                    amount
-                );
+            CollectibleManager.Instance.CollectPickup(
+                pickupId,
+                zoneId,
+                collectibleType,
+                amount
+            );
 
         if (!successfullyCollected)
         {
@@ -124,6 +106,8 @@ public class CollectiblePickup : MonoBehaviour
         }
 
         collected = true;
+
+        PlayPickupSound();
 
         if (collectEffect != null)
         {
@@ -134,15 +118,54 @@ public class CollectiblePickup : MonoBehaviour
             );
         }
 
-        Destroy(
-            gameObject
-        );
+        Destroy(gameObject);
+    }
+
+    private void PlayPickupSound()
+    {
+        if (pickupSound == null)
+        {
+            return;
+        }
+
+        if (randomizePitch)
+        {
+            float pitch = UnityEngine.Random.Range(
+                Mathf.Min(minimumPitch, maximumPitch),
+                Mathf.Max(minimumPitch, maximumPitch)
+            );
+
+            GameObject audioObject = new GameObject(
+                "CollectiblePickupAudio"
+            );
+
+            AudioSource source =
+                audioObject.AddComponent<AudioSource>();
+
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.volume = pickupVolume;
+            source.pitch = pitch;
+            source.clip = pickupSound;
+            source.Play();
+
+            Destroy(
+                audioObject,
+                pickupSound.length / Mathf.Max(0.01f, pitch) + 0.1f
+            );
+        }
+        else if (UIAudioManager.Instance != null)
+        {
+            UIAudioManager.Instance.PlaySound(
+                pickupSound,
+                pickupVolume
+            );
+        }
     }
 
     [ContextMenu("Generate New Pickup ID")]
     private void GenerateNewPickupId()
     {
-        pickupId =
-            Guid.NewGuid().ToString();
+        pickupId = Guid.NewGuid().ToString();
     }
 }
