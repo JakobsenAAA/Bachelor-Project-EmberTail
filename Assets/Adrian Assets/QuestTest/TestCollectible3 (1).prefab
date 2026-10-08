@@ -130,7 +130,7 @@ MonoBehaviour:
   collectibleType: 2
   amount: 1
   collectEffect: {fileID: 0}
-  pickupSound: {fileID: 8300000, guid: b583c3b793c5782488cc45a4b410b16a, type: 3}
+  pickupSound: {fileID: 8300000, guid: 619ecb261ee8e824fb0e64d25a23d1d7, type: 3}
   pickupVolume: 0.7
   randomizePitch: 1
   minimumPitch: 0.9
