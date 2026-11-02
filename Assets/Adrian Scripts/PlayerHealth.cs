@@ -48,12 +48,7 @@ public class PlayerHealth : MonoBehaviour
             damageKnockback = GetComponent<PlayerDamageKnockback>();
         }
 
-        currentHitPoints = Mathf.Clamp(
-            startingHitPoints,
-            1,
-            maxHitPoints
-        );
-
+        currentHitPoints = Mathf.Clamp(startingHitPoints, 1, maxHitPoints);
         currentCinders = 0;
     }
 
@@ -65,15 +60,19 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        TakeDamage(
-            damage,
-            transform.position
-        );
+        TakeDamage(damage, transform.position, true, false);
+    }
+
+    public void TakeDamage(int damage, Vector3 damageSourcePosition)
+    {
+        TakeDamage(damage, damageSourcePosition, true, false);
     }
 
     public void TakeDamage(
         int damage,
-        Vector3 damageSourcePosition
+        Vector3 damageSourcePosition,
+        bool applyKnockback,
+        bool instantDeath
     )
     {
         if (Time.time < invulnerableUntilTime)
@@ -93,25 +92,21 @@ public class PlayerHealth : MonoBehaviour
 
         lastDamageTime = Time.time;
 
-        currentHitPoints -= damage;
-
-        currentHitPoints = Mathf.Max(
-            currentHitPoints,
-            0
-        );
-
-        if (
-            damageKnockback != null &&
-            currentHitPoints > 0
-        )
+        if (instantDeath)
         {
-            damageKnockback.KnockbackFrom(
-                damageSourcePosition
-            );
+            currentHitPoints = 0;
+        }
+        else
+        {
+            currentHitPoints = Mathf.Max(currentHitPoints - damage, 0);
+        }
+
+        if (applyKnockback && damageKnockback != null && currentHitPoints > 0)
+        {
+            damageKnockback.KnockbackFrom(damageSourcePosition);
         }
 
         PlayDamageSound();
-
         OnHealthChanged.Invoke();
 
         if (currentHitPoints <= 0)
@@ -128,7 +123,6 @@ public class PlayerHealth : MonoBehaviour
         }
 
         OnCinderCollected.Invoke();
-
         PlayCinderPickupSound();
 
         currentCinders += amount;
@@ -139,20 +133,15 @@ public class PlayerHealth : MonoBehaviour
         )
         {
             currentCinders -= cindersNeededForHitPoint;
-
             currentHitPoints++;
 
             OnHealthChanged.Invoke();
-
             PlayHealthRechargeSound();
         }
 
         if (currentHitPoints >= maxHitPoints)
         {
-            currentCinders = Mathf.Min(
-                currentCinders,
-                cindersNeededForHitPoint
-            );
+            currentCinders = Mathf.Min(currentCinders, cindersNeededForHitPoint);
         }
 
         OnCindersChanged.Invoke();
@@ -160,50 +149,32 @@ public class PlayerHealth : MonoBehaviour
 
     private void PlayCinderPickupSound()
     {
-        if (
-            cinderPickupSound == null ||
-            UIAudioManager.Instance == null
-        )
+        if (cinderPickupSound == null || UIAudioManager.Instance == null)
         {
             return;
         }
 
-        UIAudioManager.Instance.PlaySound(
-            cinderPickupSound,
-            cinderPickupVolume
-        );
+        UIAudioManager.Instance.PlaySound(cinderPickupSound, cinderPickupVolume);
     }
 
     private void PlayHealthRechargeSound()
     {
-        if (
-            healthRechargeSound == null ||
-            UIAudioManager.Instance == null
-        )
+        if (healthRechargeSound == null || UIAudioManager.Instance == null)
         {
             return;
         }
 
-        UIAudioManager.Instance.PlaySound(
-            healthRechargeSound,
-            healthRechargeVolume
-        );
+        UIAudioManager.Instance.PlaySound(healthRechargeSound, healthRechargeVolume);
     }
 
     private void PlayDamageSound()
     {
-        if (
-            damageSound == null ||
-            UIAudioManager.Instance == null
-        )
+        if (damageSound == null || UIAudioManager.Instance == null)
         {
             return;
         }
 
-        UIAudioManager.Instance.PlaySound(
-            damageSound,
-            damageVolume
-        );
+        UIAudioManager.Instance.PlaySound(damageSound, damageVolume);
     }
 
     public void RestoreFullHealth()
@@ -212,10 +183,7 @@ public class PlayerHealth : MonoBehaviour
         currentCinders = 0;
 
         lastDamageTime = Time.time;
-
-        invulnerableUntilTime =
-            Time.time +
-            respawnInvulnerabilityTime;
+        invulnerableUntilTime = Time.time + respawnInvulnerabilityTime;
 
         OnHealthChanged.Invoke();
         OnCindersChanged.Invoke();
