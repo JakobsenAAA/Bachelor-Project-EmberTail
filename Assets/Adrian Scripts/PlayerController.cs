@@ -64,6 +64,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.35f;
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Squash Movement")]
+    [SerializeField, Range(0.05f, 1f)] private float squashedMovementMultiplier = 0.4f;
+
+    private PlayerSquashEffect squashEffect;
     private CharacterController characterController;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -100,6 +104,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
+        squashEffect = GetComponent<PlayerSquashEffect>();
         standingHeight = characterController.height;
         standingCenter = characterController.center;
         standingBottomY = standingCenter.y - standingHeight * 0.5f;
@@ -538,6 +543,11 @@ public class PlayerController : MonoBehaviour
                 : canSprint
                     ? sprintSpeed
                     : moveSpeed;
+
+        if (squashEffect != null && squashEffect.IsSquashed)
+        {
+            currentSpeed *= squashedMovementMultiplier;
+        }
 
         characterController.Move(
             currentMoveDirection *

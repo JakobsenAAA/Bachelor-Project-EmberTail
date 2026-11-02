@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 public class ThirdPersonCamera : MonoBehaviour
@@ -20,9 +21,14 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private float collisionOffset = 0.15f;
     [SerializeField] private float minimumDistance = 0.75f;
 
+    [Header("Fall Death Camera")]
+    [SerializeField] private float fallLookSpeed = 12f;
+    [SerializeField] private float fallLookHeight = 0.8f;
+
     private float yaw;
     private float pitch;
     private bool cameraInputEnabled = true;
+    private bool fallDeathActive;
 
     private void Start()
     {
@@ -32,25 +38,24 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (cameraInputEnabled)
+        if (fallDeathActive)
         {
-            Vector2 lookInput =
-                playerController.LookInput;
+            UpdateFallDeathCamera();
+            return;
+        }
 
-            yaw +=
-                lookInput.x *
-                mouseSensitivity;
+        if (cameraInputEnabled && playerController != null)
+        {
+            Vector2 lookInput = playerController.LookInput;
 
-            pitch -=
-                lookInput.y *
-                mouseSensitivity;
+            yaw += lookInput.x * mouseSensitivity;
+            pitch -= lookInput.y * mouseSensitivity;
 
-            pitch =
-                Mathf.Clamp(
-                    pitch,
-                    minVerticalAngle,
-                    maxVerticalAngle
-                );
+            pitch = Mathf.Clamp(
+                pitch,
+                minVerticalAngle,
+                maxVerticalAngle
+            );
         }
 
         UpdateCameraPosition(false);
@@ -61,9 +66,72 @@ public class ThirdPersonCamera : MonoBehaviour
         cameraInputEnabled = enabled;
     }
 
+    public void StartFallDeathCamera()
+    {
+        fallDeathActive = true;
+    }
+
+    public void StopFallDeathCamera()
+    {
+        if (!fallDeathActive)
+        {
+            return;
+        }
+
+        fallDeathActive = false;
+
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 direction =
+            target.position + Vector3.up * height - transform.position;
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            Quaternion rotation = Quaternion.LookRotation(direction);
+
+            yaw = rotation.eulerAngles.y;
+            pitch = Mathf.DeltaAngle(0f, rotation.eulerAngles.x);
+
+            pitch = Mathf.Clamp(
+                pitch,
+                minVerticalAngle,
+                maxVerticalAngle
+            );
+        }
+    }
+
     public void SnapToTarget()
     {
         UpdateCameraPosition(true);
+    }
+
+    private void UpdateFallDeathCamera()
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 lookPosition =
+            target.position + Vector3.up * fallLookHeight;
+
+        Vector3 direction = lookPosition - transform.position;
+
+        if (direction.sqrMagnitude < 0.001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            Mathf.Clamp01(fallLookSpeed * Time.deltaTime)
+        );
     }
 
     private void UpdateCameraPosition(bool snapInstantly)
@@ -73,28 +141,20 @@ public class ThirdPersonCamera : MonoBehaviour
             return;
         }
 
-        Quaternion rotation =
-            Quaternion.Euler(
-                pitch,
-                yaw,
-                0f
-            );
+        Quaternion rotation = Quaternion.Euler(
+            pitch,
+            yaw,
+            0f
+        );
 
         Vector3 targetPosition =
-            target.position +
-            Vector3.up *
-            height;
+            target.position + Vector3.up * height;
 
         Vector3 desiredDirection =
             -(rotation * Vector3.forward);
 
         Vector3 desiredPosition =
-            targetPosition +
-            desiredDirection *
-            distance;
-
-        float finalDistance =
-            distance;
+            targetPosition + desiredDirection * distance;
 
         if (
             Physics.SphereCast(
@@ -108,38 +168,29 @@ public class ThirdPersonCamera : MonoBehaviour
             )
         )
         {
-            finalDistance =
-                Mathf.Clamp(
-                    hit.distance -
-                    collisionOffset,
-                    minimumDistance,
-                    distance
-                );
+            float finalDistance = Mathf.Clamp(
+                hit.distance - collisionOffset,
+                minimumDistance,
+                distance
+            );
 
             desiredPosition =
-                targetPosition +
-                desiredDirection *
-                finalDistance;
+                targetPosition + desiredDirection * finalDistance;
         }
 
         if (snapInstantly)
         {
-            transform.position =
-                desiredPosition;
+            transform.position = desiredPosition;
         }
         else
         {
-            transform.position =
-                Vector3.Lerp(
-                    transform.position,
-                    desiredPosition,
-                    cameraSmoothSpeed *
-                    Time.deltaTime
-                );
+            transform.position = Vector3.Lerp(
+                transform.position,
+                desiredPosition,
+                Mathf.Clamp01(cameraSmoothSpeed * Time.deltaTime)
+            );
         }
 
-        transform.LookAt(
-            targetPosition
-        );
+        transform.LookAt(targetPosition);
     }
 }

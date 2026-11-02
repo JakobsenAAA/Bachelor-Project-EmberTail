@@ -1,3 +1,5 @@
+
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -12,6 +14,7 @@ public class PlayerRespawn : MonoBehaviour
     [SerializeField] private PlayerHealth playerHealth;
     [SerializeField] private EnemyRespawnManager enemyRespawnManager;
     [SerializeField] private ThirdPersonCamera thirdPersonCamera;
+    [SerializeField] private PlayerController playerController;
 
     [Header("Death Transition")]
     [SerializeField] private bool useDeathTransition = true;
@@ -19,88 +22,72 @@ public class PlayerRespawn : MonoBehaviour
     [SerializeField] private float deathLoadingDuration = 1.5f;
     [SerializeField] private float respawnFadeInDuration = 0.75f;
 
+    [Header("Fall Death")]
+    [SerializeField, Min(0f)] private float fallDeathDelay = 1.5f;
+
     private CharacterController characterController;
     private Vector3 currentRespawnPosition;
     private Quaternion currentRespawnRotation;
     private string currentCheckpointId;
     private string currentZoneId;
     private bool deathTransitionActive;
+    private bool fallDeathActive;
+    private Coroutine fallDeathCoroutine;
 
-    public string CurrentCheckpointId =>
-        currentCheckpointId;
-
-    public string CurrentZoneId =>
-        currentZoneId;
+    public string CurrentCheckpointId => currentCheckpointId;
+    public string CurrentZoneId => currentZoneId;
 
     private void Awake()
     {
-        characterController =
-            GetComponent<CharacterController>();
+        characterController = GetComponent<CharacterController>();
 
         if (playerHealth == null)
         {
-            playerHealth =
-                GetComponent<PlayerHealth>();
+            playerHealth = GetComponent<PlayerHealth>();
+        }
+
+        if (playerController == null)
+        {
+            playerController = GetComponent<PlayerController>();
         }
 
         if (enemyRespawnManager == null)
         {
             enemyRespawnManager =
-                FindFirstObjectByType<
-                    EnemyRespawnManager
-                >();
+                FindFirstObjectByType<EnemyRespawnManager>();
         }
 
         if (thirdPersonCamera == null)
         {
             thirdPersonCamera =
-                FindFirstObjectByType<
-                    ThirdPersonCamera
-                >();
+                FindFirstObjectByType<ThirdPersonCamera>();
         }
 
         if (startingRespawnPoint != null)
         {
-            currentRespawnPosition =
-                startingRespawnPoint.position;
-
-            currentRespawnRotation =
-                startingRespawnPoint.rotation;
+            currentRespawnPosition = startingRespawnPoint.position;
+            currentRespawnRotation = startingRespawnPoint.rotation;
 
             RespawnPoint startingPoint =
-                startingRespawnPoint
-                    .GetComponent<RespawnPoint>();
+                startingRespawnPoint.GetComponent<RespawnPoint>();
 
             if (startingPoint != null)
             {
-                currentCheckpointId =
-                    startingPoint.CheckpointId;
-
-                currentZoneId =
-                    startingPoint.ZoneId;
+                currentCheckpointId = startingPoint.CheckpointId;
+                currentZoneId = startingPoint.ZoneId;
             }
             else
             {
-                currentCheckpointId =
-                    startingCheckpointId;
-
-                currentZoneId =
-                    startingZoneId;
+                currentCheckpointId = startingCheckpointId;
+                currentZoneId = startingZoneId;
             }
         }
         else
         {
-            currentRespawnPosition =
-                transform.position;
-
-            currentRespawnRotation =
-                transform.rotation;
-
-            currentCheckpointId =
-                startingCheckpointId;
-
-            currentZoneId =
-                startingZoneId;
+            currentRespawnPosition = transform.position;
+            currentRespawnRotation = transform.rotation;
+            currentCheckpointId = startingCheckpointId;
+            currentZoneId = startingZoneId;
         }
     }
 
@@ -113,11 +100,7 @@ public class PlayerRespawn : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth
-                .OnPlayerDied
-                .AddListener(
-                    HandlePlayerDied
-                );
+            playerHealth.OnPlayerDied.AddListener(HandlePlayerDied);
         }
     }
 
@@ -125,45 +108,26 @@ public class PlayerRespawn : MonoBehaviour
     {
         if (playerHealth != null)
         {
-            playerHealth
-                .OnPlayerDied
-                .RemoveListener(
-                    HandlePlayerDied
-                );
+            playerHealth.OnPlayerDied.RemoveListener(HandlePlayerDied);
         }
     }
 
-    public void SetRespawnPoint(
-        RespawnPoint respawnPoint
-    )
+    public void SetRespawnPoint(RespawnPoint respawnPoint)
     {
         if (respawnPoint == null)
         {
             return;
         }
 
-        currentRespawnPosition =
-            respawnPoint.transform.position;
-
-        currentRespawnRotation =
-            respawnPoint.transform.rotation;
-
-        currentCheckpointId =
-            respawnPoint.CheckpointId;
-
-        currentZoneId =
-            respawnPoint.ZoneId;
+        currentRespawnPosition = respawnPoint.transform.position;
+        currentRespawnRotation = respawnPoint.transform.rotation;
+        currentCheckpointId = respawnPoint.CheckpointId;
+        currentZoneId = respawnPoint.ZoneId;
     }
 
-    public bool LoadCheckpoint(
-        string checkpointId
-    )
+    public bool LoadCheckpoint(string checkpointId)
     {
-        if (
-            string.IsNullOrWhiteSpace(
-                checkpointId
-            )
-        )
+        if (string.IsNullOrWhiteSpace(checkpointId))
         {
             return false;
         }
@@ -174,40 +138,73 @@ public class PlayerRespawn : MonoBehaviour
                 FindObjectsSortMode.None
             );
 
-        for (
-            int i = 0;
-            i < respawnPoints.Length;
-            i++
-        )
+        for (int i = 0; i < respawnPoints.Length; i++)
         {
-            RespawnPoint respawnPoint =
-                respawnPoints[i];
+            RespawnPoint respawnPoint = respawnPoints[i];
 
             if (
                 respawnPoint != null &&
-                respawnPoint.CheckpointId ==
-                checkpointId
+                respawnPoint.CheckpointId == checkpointId
             )
             {
-                SetRespawnPoint(
-                    respawnPoint
-                );
-
+                SetRespawnPoint(respawnPoint);
                 Respawn();
-
                 return true;
             }
         }
 
         Debug.LogWarning(
-            "Could not find saved checkpoint: " +
-            checkpointId
+            "Could not find saved checkpoint: " + checkpointId
         );
 
         return false;
     }
 
+    public void BeginFallDeath()
+    {
+        if (fallDeathActive || deathTransitionActive)
+        {
+            return;
+        }
+
+        fallDeathActive = true;
+
+        if (playerController != null)
+        {
+            playerController.SetGameplayInputEnabled(false);
+        }
+
+        if (thirdPersonCamera != null)
+        {
+            thirdPersonCamera.StartFallDeathCamera();
+        }
+
+        fallDeathCoroutine = StartCoroutine(FallDeathRoutine());
+    }
+
+    private IEnumerator FallDeathRoutine()
+    {
+        yield return new WaitForSeconds(fallDeathDelay);
+
+        fallDeathCoroutine = null;
+
+        if (!deathTransitionActive)
+        {
+            StartDeathTransition();
+        }
+    }
+
     private void HandlePlayerDied()
+    {
+        if (deathTransitionActive || fallDeathActive)
+        {
+            return;
+        }
+
+        StartDeathTransition();
+    }
+
+    private void StartDeathTransition()
     {
         if (deathTransitionActive)
         {
@@ -221,13 +218,12 @@ public class PlayerRespawn : MonoBehaviour
         {
             deathTransitionActive = true;
 
-            LoadingScreenManager.Instance
-                .StartRespawnTransition(
-                    CompleteDeathRespawn,
-                    deathFadeOutDuration,
-                    deathLoadingDuration,
-                    respawnFadeInDuration
-                );
+            LoadingScreenManager.Instance.StartRespawnTransition(
+                CompleteDeathRespawn,
+                deathFadeOutDuration,
+                deathLoadingDuration,
+                respawnFadeInDuration
+            );
 
             return;
         }
@@ -238,43 +234,50 @@ public class PlayerRespawn : MonoBehaviour
     private void CompleteDeathRespawn()
     {
         Respawn();
-
-        deathTransitionActive =
-            false;
+        deathTransitionActive = false;
     }
 
     public void Respawn()
     {
-        characterController.enabled =
-            false;
+        if (fallDeathCoroutine != null)
+        {
+            StopCoroutine(fallDeathCoroutine);
+            fallDeathCoroutine = null;
+        }
+
+        characterController.enabled = false;
 
         transform.SetPositionAndRotation(
             currentRespawnPosition,
             currentRespawnRotation
         );
 
-        characterController.enabled =
-            true;
+        characterController.enabled = true;
 
         UpdateZoneManager();
 
         if (thirdPersonCamera != null)
         {
-            thirdPersonCamera
-                .SnapToTarget();
+            thirdPersonCamera.StopFallDeathCamera();
+            thirdPersonCamera.SnapToTarget();
         }
 
         if (playerHealth != null)
         {
-            playerHealth
-                .RestoreFullHealth();
+            playerHealth.RestoreFullHealth();
         }
 
         if (enemyRespawnManager != null)
         {
-            enemyRespawnManager
-                .ResetAllEnemies();
+            enemyRespawnManager.ResetAllEnemies();
         }
+
+        if (playerController != null && fallDeathActive)
+        {
+            playerController.SetGameplayInputEnabled(true);
+        }
+
+        fallDeathActive = false;
     }
 
     private void UpdateZoneManager()
@@ -284,9 +287,6 @@ public class PlayerRespawn : MonoBehaviour
             return;
         }
 
-        ZoneManager.Instance
-            .ForceCurrentZone(
-                currentZoneId
-            );
+        ZoneManager.Instance.ForceCurrentZone(currentZoneId);
     }
 }
